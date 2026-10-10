@@ -16,7 +16,7 @@ Goal: an empty but production-shaped repo. No features yet.
 - [x] Agent team: first subagent (`plan-reviewer`) + roster in AGENTS.md
 - [x] Git repo + GitHub remote, squash-merge only, auto-delete merged branches
 - [x] Project skeleton: `uv` project, `src/xemo_music_bot/` package, `config.py`, logging
-- [ ] Tooling: ruff, mypy strict, pytest, pre-commit hooks
+- [x] Tooling: ruff, mypy strict, pytest, pre-commit hooks
 - [ ] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
       `.github/dependabot.yml` (uv + github-actions, weekly) to keep yt-dlp current
 - [ ] Branch protection on `main`: PR required, CI status check required, applies to admins
