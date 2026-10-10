@@ -25,6 +25,8 @@ Versioning: [SemVer](https://semver.org/).
   (schema, migration and Redis key design and review) subagents.
 - Hello-world bot: aiogram long polling via `python -m xemo_music_bot`, `/start` greeting
   in English, Ukrainian or Russian picked from the Telegram language (English fallback).
+- MVP UX spec and UX guide (draft) from the owner interview: flows, mockups and copy in
+  English, Ukrainian and Russian.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
