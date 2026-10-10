@@ -18,6 +18,8 @@ Versioning: [SemVer](https://semver.org/).
 - `python-engineer` subagent for implementing roadmap items; the main session becomes
   the orchestrator that delegates and owns git and PRs.
 - `ux-designer` subagent with an interview-first workflow.
+- CI: GitHub Actions runs format check, lint, mypy and tests on every PR and push to
+  `main`; Dependabot opens weekly update PRs for uv packages and actions.
 - ADR 0005 (proposed): English, Ukrainian and Russian via typed in-code catalogs.
 
 ### Changed
