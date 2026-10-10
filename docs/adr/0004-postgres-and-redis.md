@@ -17,10 +17,10 @@ listings), rate limiting and aiogram FSM storage that survive restarts.
 
 ## Alternatives considered
 
-- **SQLite** — simpler, but diverges from production and handles concurrent writes worse;
+- **SQLite** - simpler, but diverges from production and handles concurrent writes worse;
   Postgres is also the learning goal.
-- **MongoDB** — our data is relational (users ↔ invites ↔ tracks).
-- **No Redis (in-memory caches)** — lost on restart; doesn't scale past one process.
+- **MongoDB** - our data is relational (users ↔ invites ↔ tracks).
+- **No Redis (in-memory caches)** - lost on restart; doesn't scale past one process.
 
 ## Consequences
 

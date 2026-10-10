@@ -7,11 +7,11 @@ Status legend: ✅ done · 🚧 in progress · ⏳ next · 💤 later
 
 ---
 
-## Phase 0 — Foundations 🚧 → `v0.0.1`
+## Phase 0 - Foundations 🚧 → `v0.0.1`
 
 Goal: an empty but production-shaped repo. No features yet.
 
-- [x] Planning docs: AGENTS.md, ROADMAP, ARCHITECTURE, CONTRIBUTING, ADRs 0001–0004
+- [x] Planning docs: AGENTS.md, ROADMAP, ARCHITECTURE, CONTRIBUTING, ADRs 0001-0004
 - [x] Repo conventions: PR/issue templates, `.gitignore`, `.editorconfig`, LICENSE
 - [x] Agent team: first subagent (`plan-reviewer`) + roster in AGENTS.md
 - [ ] Git repo + GitHub remote, branch protection on `main` (PR required, CI must pass)
@@ -21,7 +21,7 @@ Goal: an empty but production-shaped repo. No features yet.
 - [ ] Docker: `Dockerfile` (with ffmpeg) + `docker-compose.yml` (bot, postgres, redis)
 - [ ] Bot hello-world: `/start` replies, bot runs locally via long polling
 
-## Phase 1 — MVP: search & listen ⏳ → `v0.1.0`
+## Phase 1 - MVP: search & listen ⏳ → `v0.1.0`
 
 Goal: friends can search SoundCloud and receive tracks as audio messages.
 
@@ -37,32 +37,32 @@ Goal: friends can search SoundCloud and receive tracks as audio messages.
 
 > Search is **by name only**. SoundCloud links are reserved for linking a profile (Phase 3).
 
-## Phase 2 — Deploy for friends 💤 → `v0.2.0`
+## Phase 2 - Deploy for friends 💤 → `v0.2.0`
 
 Goal: the bot runs 24/7 and updates itself on merge.
 
-- [ ] Choose host (VPS vs home server) — ADR
+- [ ] Choose host (VPS vs home server) - ADR
 - [ ] Production compose file, secrets via env, healthcheck
 - [ ] CD: GitHub Actions builds image → GHCR → deploys on tag
 - [ ] Postgres backups, structured logs, basic error alerting (e.g. to admin chat)
 
-## Phase 3 — SoundCloud profiles 💤 → `v0.3.0`
+## Phase 3 - SoundCloud profiles 💤 → `v0.3.0`
 
 Goal: browse your own public SoundCloud library inside the bot.
 
-- [ ] `/profile` — link a public SoundCloud profile by username or URL
+- [ ] `/profile` - link a public SoundCloud profile by username or URL
 - [ ] Browse likes (paginated) and playlists → tap to receive tracks
 - [ ] "Send whole playlist" with progress message and rate limiting
 - [ ] Cache profile listings in Redis with short TTL
 
-## Phase 4 — Quality of life 💤 → `v0.4.0`
+## Phase 4 - Quality of life 💤 → `v0.4.0`
 
 - [ ] Inline mode: `@xemo_music_bot query` in any chat
 - [ ] YouTube provider behind a feature flag
 - [ ] In-bot favourites and recent history
 - [ ] Per-user settings (default source, audio quality)
 
-## Phase 5 — Mini App 💤 → `v1.0.0`
+## Phase 5 - Mini App 💤 → `v1.0.0`
 
 Goal: a Spotify-like player opened from inside Telegram.
 
@@ -74,6 +74,6 @@ Goal: a Spotify-like player opened from inside Telegram.
 ## Ideas backlog (unsorted, not committed)
 
 - Shared friend playlists / "what friends are listening to"
-- Official SoundCloud OAuth (requires Artist Pro — see ADR 0002)
+- Official SoundCloud OAuth (requires Artist Pro - see ADR 0002)
 - Lyrics, Last.fm scrobbling, recommendations
 - Quality-of-service dashboard (download latency, cache hit rate)

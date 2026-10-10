@@ -15,11 +15,11 @@ pytest.
 
 ## Alternatives considered
 
-- **TypeScript + grammY** — one language with a future web frontend, but `yt-dlp` would
+- **TypeScript + grammY** - one language with a future web frontend, but `yt-dlp` would
   run as a subprocess and we'd lose typed, in-process control over extraction.
-- **python-telegram-bot** — mature, but aiogram's routers, middlewares, FSM and
+- **python-telegram-bot** - mature, but aiogram's routers, middlewares, FSM and
   `CallbackData` factories map more cleanly onto our layered design.
-- **Pyrogram/Telethon (MTProto)** — not needed; the Bot API covers our features.
+- **Pyrogram/Telethon (MTProto)** - not needed; the Bot API covers our features.
 
 ## Consequences
 

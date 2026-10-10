@@ -8,7 +8,7 @@ How the system is shaped and why. Keep this file in sync when boundaries change.
  Telegram ──updates──▶ bot/ (aiogram: routers, middlewares, keyboards, texts)
                           │  calls
                           ▼
-                       core/ (services + domain models — no aiogram imports)
+                       core/ (services + domain models - no aiogram imports)
                        │        │
                ┌───────┘        └────────┐
                ▼                         ▼

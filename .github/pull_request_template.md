@@ -1,8 +1,8 @@
 ## Summary
 
-<!-- What does this PR do and why? 1–3 sentences. Link the roadmap item / issue. -->
+<!-- What does this PR do and why? 1-3 sentences. Link the roadmap item / issue. -->
 
-Roadmap: Phase N — <item> · Closes #
+Roadmap: Phase N - <item> · Closes #
 
 ## Changes
 

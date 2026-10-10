@@ -66,7 +66,7 @@ All four checks (format, lint, mypy, pytest) must pass before you call a task do
 - `core/` must not import `aiogram`. It will be reused by the future Mini App backend.
 - Handlers are thin: parse input → call one service → render via keyboards/texts.
 - All user-facing strings live in `bot/texts.py`. No string literals in handlers.
-- `yt-dlp` is synchronous — always run it via `asyncio.to_thread` behind a concurrency
+- `yt-dlp` is synchronous - always run it via `asyncio.to_thread` behind a concurrency
   limit. Never block the event loop.
 - Every DB access goes through a repository in `db/repositories/`.
 - Config comes only from `config.py` (pydantic-settings, env vars). No `os.getenv` elsewhere.
@@ -103,6 +103,8 @@ New agents and changes to existing ones go through `agent-engineer`.
 
 - Commit secrets, `.env`, cookies, or downloaded audio.
 - Persist audio files beyond the upload to Telegram (temp files are deleted after send).
-- Add public-facing features (public channels, open sign-up) — the bot is private by design
+- Add public-facing features (public channels, open sign-up) - the bot is private by design
   (see ADR 0003).
 - Silence a type error or lint rule without a comment explaining why.
+- Add AI/tool attribution ("Generated with ...", `Co-Authored-By`) to commits, PRs or
+  comments, or use em/en dashes - write a plain `-` (see CONTRIBUTING.md, Writing style).
