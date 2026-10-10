@@ -89,6 +89,7 @@ Subagents report back; only the main session edits code unless a role says other
 
 | Agent            | Role                                                    | Status  |
 |------------------|---------------------------------------------------------|---------|
+| `agent-engineer` | Designs, audits and improves the other agents           | ✅ ready |
 | `plan-reviewer`  | Critiques ROADMAP / ARCHITECTURE / ADRs, proposes fixes | ✅ ready |
 | `ux-designer`    | Message flows, keyboards, copy in `texts.py`, Mini App UI | 💤 Phase 1 |
 | `db-architect`   | Schema, migrations, indexes, query review               | 💤 Phase 1 |
@@ -96,6 +97,7 @@ Subagents report back; only the main session edits code unless a role says other
 | `brainstormer`   | Feature ideas tailored to the friend group → backlog    | 💤 later |
 
 Add a role only when there's real work for it; tune prompts as we learn what helps.
+New agents and changes to existing ones go through `agent-engineer`.
 
 ## Never
 
