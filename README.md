@@ -22,9 +22,12 @@ Requires [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 for you).
 
 ```bash
 uv sync                          # create .venv and install dependencies
+uv run pre-commit install        # run format, lint and type checks on every commit
 cp .env.example .env             # then fill in BOT_TOKEN and ADMIN_IDS
 uv run python -m xemo_music_bot  # run
 ```
+
+Checks: `uv run ruff format . && uv run ruff check . && uv run mypy && uv run pytest`
 
 ## Documentation
 

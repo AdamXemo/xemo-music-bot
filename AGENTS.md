@@ -32,14 +32,13 @@ Redis · pydantic-settings · uv · ruff · mypy (strict) · pytest · Docker Co
 
 ## Commands
 
-> Available once Phase 0 (project skeleton) is merged.
-
 ```bash
 uv sync                      # install deps
+uv run pre-commit install    # once per clone: format/lint/type-check on commit
 uv run ruff format .         # format
 uv run ruff check . --fix    # lint
-uv run mypy src              # type-check
-uv run pytest                # tests
+uv run mypy                  # type-check (src + tests)
+uv run pytest                # tests (add --cov for coverage)
 docker compose up -d db redis  # local infra
 uv run python -m xemo_music_bot  # run the bot
 ```
