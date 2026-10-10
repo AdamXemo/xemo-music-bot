@@ -102,8 +102,8 @@ role names. Trivial fixes (a typo, a one-line doc change) the main session may d
 | `plan-reviewer`   | Critiques ROADMAP / ARCHITECTURE / ADRs, proposes fixes | ✅ ready |
 | `python-engineer` | Implements one roadmap item: code, tests, PR text       | ✅ ready |
 | `ux-designer`     | Interviews owner; specs flows, keyboards, EN/UK/RU copy | ✅ ready |
-| `db-architect`    | Designs and reviews schema, migrations, indexes, queries | 💤 Phase 1 |
-| `qa-reviewer`     | Reviews diffs for bugs, missing tests, rule violations  | 💤 Phase 1 |
+| `db-architect`    | Designs and reviews schema, migrations, queries, Redis keys | ✅ ready |
+| `qa-reviewer`     | Reviews diffs for bugs, weak tests, rule and async issues | ✅ ready |
 | `brainstormer`    | Feature ideas tailored to the friend group → backlog    | 💤 later |
 
 Before a new kind of big task starts (DB design, UX, review, deployment), create its agent

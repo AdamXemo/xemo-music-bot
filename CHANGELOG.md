@@ -21,6 +21,8 @@ Versioning: [SemVer](https://semver.org/).
 - CI: GitHub Actions runs format check, lint, mypy and tests on every PR and push to
   `main`; Dependabot opens weekly update PRs for uv packages and actions.
 - ADR 0005 (proposed): English, Ukrainian and Russian via typed in-code catalogs.
+- `qa-reviewer` (read-only review of python-engineer's changes) and `db-architect`
+  (schema, migration and Redis key design and review) subagents.
 - Hello-world bot: aiogram long polling via `python -m xemo_music_bot`, `/start` greeting
   in English, Ukrainian or Russian picked from the Telegram language (English fallback).
 
