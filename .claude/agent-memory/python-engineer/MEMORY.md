@@ -1,2 +1,3 @@
 - [aiogram quirks](aiogram-quirks.md) - 3.31 pydantic pin, router attach-once, run_polling shutdown, handler test fake
-- [Tooling gotchas](tooling-gotchas.md) - Bash hook blocks some read-only combos; .env.example missing
+- [Tooling gotchas](tooling-gotchas.md) - Bash hook blocks heredocs and some read-only combos; dash escapes turn literal; SIM905
+- [yt-dlp quirks](yt-dlp-quirks.md) - 2026.8.19 flat scsearch entry shape, HEAD per entry latency, Go+ 30 s previews, no py.typed

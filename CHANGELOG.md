@@ -27,6 +27,8 @@ Versioning: [SemVer](https://semver.org/).
   in English, Ukrainian or Russian picked from the Telegram language (English fallback).
 - MVP UX spec and UX guide (draft) from the owner interview: flows, mockups and copy in
   English, Ukrainian and Russian.
+- `MusicProvider` interface and SoundCloud search via yt-dlp (metadata only, off the event
+  loop, concurrency-capped), with performer and title cleaned per the MVP spec.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
