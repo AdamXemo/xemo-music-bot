@@ -50,6 +50,8 @@ and Russian. Keep everything else as simple as it can be.
 - [ ] Provider interface (`MusicProvider`) + SoundCloud provider: search
 - [ ] Redis: client from config, aiogram `RedisStorage`, search session cache
       (results stored under a short id with TTL)
+- [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
+      and friends' devices; decides whether cards replace track buttons later
 - [ ] Search UX: text message → one results message, inline buttons, pagination by edit
 - [ ] Provider download: `MusicProvider.download()` via yt-dlp in `asyncio.to_thread`
       behind a semaphore, temp dir always cleaned up, max-duration guard (50 MB upload cap)

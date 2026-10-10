@@ -6,7 +6,7 @@
 
 ## Goal
 
-An invited friend opens the invite link, sends a track name, picks a number and gets the
+An invited friend opens the invite link, sends a track name, taps a track and gets the
 track as a Telegram audio message, in English, Ukrainian or Russian.
 
 ## User flow
@@ -71,7 +71,7 @@ message to `language_set` (no keyboard), written in the new language.
 ```
 ┌──────────────────────────────────────────────┐
 │ Send a track name, like daft punk instant    │
-│ crush, and pick a number from the list.      │
+│ crush, and tap a track in the list.          │
 │ /language changes the language.              │
 └──────────────────────────────────────────────┘
 ```
@@ -79,48 +79,59 @@ message to `language_set` (no keyboard), written in the new language.
 ### 5. Search
 
 1. The user sends text. The `typing` chat action runs until the reply is sent.
-2. The bot sends one new results message: the query in bold, then up to 5 numbered
-   lines, then a row of number buttons and, if there is more than one page, a pager row.
-3. Numbering continues across pages (page 2 shows 6-10), so buttons match the lines.
+2. The bot sends one new results message: the query in bold as the only text, then one
+   full-width button per track (up to 5) and, if there is more than one page, a pager row.
+3. Each track button carries the optional `track` emoji slot as its icon and no `style`.
 4. Paging edits the same message (text and keyboard). At the ends the arrow is a disabled
    button so the row never shifts. The counter is always disabled.
 
 ```
 ┌──────────────────────────────────────────────┐
 │ <b>instant crush</b>                         │
-│                                              │
-│ 1. Daft Punk - Instant Crush (feat. Julian   │
-│    Casablancas) · 5:37                       │
-│ 2. Daft Punk - Instant Crush (Live) · 6:02   │
-│ 3. Hauzer - Instant Crush (Remix) · 3:41     │
-│ 4. Jenny Kim - Instant Crush cover · 4:12    │
-│ 5. Daft Punk - Instant Crush · 1:02:15       │
-│ [ 1 ] [ 2 ] [ 3 ] [ 4 ] [ 5 ]                │
+│ [ [e:track] Instant Crush (feat.… · 5:37   ] │
+│ [ [e:track] Instant Crush (Live) · 6:02    ] │
+│ [ [e:track] Instant Crush (Remix) · 3:41   ] │
+│ [ [e:track] Instant Crush - Jenny Kim · 4:12 ]│
+│ [ [e:track] Instant Crush - Daft… · 1:02:15 ]│
 │ ( ‹ Back ) ( 1 / 4 ) [ Next › ]              │
 └──────────────────────────────────────────────┘
 ```
 
-Each line is `{index}. Artist - Title · duration`, built from the same cleaned performer
-and title as the audio (see "Clean metadata" below), cut at a word boundary with `…` so
-the `Artist - Title` part is at most 90 characters; the duration is never cut.
+**Track label.** `Title - Artist · duration` (`result_label`), built from the cleaned
+performer and title (see "Clean metadata" below). The whole label is at most 32
+characters, not counting the icon; emoji in titles count as 2. Shortening order:
+
+1. The ` · duration` suffix is never cut.
+2. If the label is too long, the artist is cut at the end with `…`.
+3. If fewer than 5 characters of the artist (including `…`) would remain, the artist and
+   its ` - ` are dropped.
+4. If still too long, the title is cut at a word boundary with `…` (at a character
+   boundary if one word is longer than the space left).
+
+The label is the same in every language; only `track_loading` is translated, and its
+longest form (UK, 13 characters) fits the full-width budget.
 
 ### 6. Delivery
 
-1. The user taps a number. The callback is answered without text.
+1. The user taps a track button. The callback is answered without text.
 2. **Cached track** (`tg_file_id` known): the audio is sent immediately. The keyboard is
    not touched.
 3. **Not cached:** the tapped button is edited into a disabled loading button
-   (`[e:loading]` icon, text `…`). `upload_document` chat action repeats every 4 s until
-   the audio is sent. Other numbers stay tappable; several tracks may load at once.
+   (`[e:loading]` icon, text `track_loading`). `upload_document` chat action repeats
+   every 4 s until the audio is sent. Other tracks stay tappable; several may load at once.
 4. The audio arrives as a new message: Telegram's native audio player with the cover as
    the round thumbnail under the play button, the performer and title in bold, and the
-   duration and file size below. No caption, no buttons. The number button is restored.
+   duration and file size below. No caption, no buttons. The track button is restored.
 5. The results message stays as it is, so more tracks can be picked.
 
 ```
 ┌──────────────────────────────────────────────┐
-│ ...results text unchanged...                 │
-│ [ 1 ] ( [e:loading] … ) [ 3 ] [ 4 ] [ 5 ]    │
+│ <b>instant crush</b>                         │
+│ [ [e:track] Instant Crush (feat.… · 5:37   ] │
+│ ( [e:loading] Loading…                     ) │
+│ [ [e:track] Instant Crush (Remix) · 3:41   ] │
+│ [ [e:track] Instant Crush - Jenny Kim · 4:12 ]│
+│ [ [e:track] Instant Crush - Daft… · 1:02:15 ]│
 │ ( ‹ Back ) ( 1 / 4 ) [ Next › ]              │
 └──────────────────────────────────────────────┘
 
@@ -155,10 +166,14 @@ in the results list, the audio and the `tracks` cache:
 
 | Decision | Choice | Source |
 |----------|--------|--------|
-| Results layout | Numbered text list with full titles, compact number buttons below | Owner, 2026-10-10 |
-| Page size | 5 per page, one row of number buttons | Owner, 2026-10-10 |
+| Results layout | One full-width button per track; message text is only the query (replaces the numbered list) | Owner, 2026-10-10 |
+| Track label | `Title - Artist · m:ss`; artist cut first, duration always kept | Owner, 2026-10-10 |
+| Rich message cards | Not in the MVP; a spike on real devices decides a later switch | Owner, 2026-10-10 |
+| Page size | 5 tracks per page | Owner, 2026-10-10 |
 | After the audio is sent | Results message stays as is | Owner, 2026-10-10 |
-| Progress | Tapped number becomes a disabled loading button, plus chat action | Owner, 2026-10-10 |
+| Progress | Tapped track button becomes a disabled loading button, plus chat action | Owner, 2026-10-10 |
+| Label budget | 32 characters, artist kept only if 5+ characters of it fit | Assumed default |
+| Loading button text | "Loading…" with the `loading` icon, instead of the track label | Assumed default |
 | Onboarding | Welcome in the detected language with a language button; no extra step | Owner, 2026-10-10 |
 | Too-long tracks | Shown normally; a tap shows a short alert | Owner, 2026-10-10 |
 | Results header | Only the query, in bold; no "Results for" | Assumed default |
@@ -175,13 +190,14 @@ in the results list, the audio and the `tracks` cache:
 | Commands | `/start`, `/help`, `/language`; admins also see `/invite`, `/revoke`, `/ban` | Assumed default |
 | Strangers | Only `/start` gets a reply; everything else is ignored | Assumed default |
 | Language picker | Names in their own language, no flags; current one `primary` | Assumed default |
-| Download failure | Short new message, the number is restored; tapping it retries | Assumed default |
+| Download failure | Short new message, the track button is restored; tapping it retries | Assumed default |
 | Query length | Over 100 characters is rejected with a hint | Assumed default |
 
 ## Copy
 
 No string in this spec needs plural forms. `{query}` and `{track}` are HTML-escaped.
-`{track}` is the display form `Artist - Title`, cut to 60 characters.
+`{track}` in messages is the display form `Artist - Title`, cut to 60 characters (it
+matches the audio player); track buttons use `result_label` instead.
 
 | key | EN | UK | RU | notes |
 |-----|----|----|----|-------|
@@ -192,13 +208,13 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
 | language_name | English | Українська | Русский | picker button label |
 | language_prompt | Choose a language. | Виберіть мову. | Выберите язык. | |
 | language_set | Done, I speak English now. | Готово, тепер я говорю українською. | Готово, теперь я говорю по-русски. | proofread UK/RU |
-| help | Send a track name, like `<i>daft punk instant crush</i>`, and pick a number from the list.`\n`/language changes the language. | Надішліть назву треку, наприклад `<i>daft punk instant crush</i>`, і виберіть номер у списку.`\n`/language змінює мову. | Пришлите название трека, например `<i>daft punk instant crush</i>`, и выберите номер в списке.`\n`/language меняет язык. | |
+| help | Send a track name, like `<i>daft punk instant crush</i>`, and tap a track in the list.`\n`/language changes the language. | Надішліть назву треку, наприклад `<i>daft punk instant crush</i>`, і натисніть потрібний трек у списку.`\n`/language змінює мову. | Пришлите название трека, например `<i>daft punk instant crush</i>`, и нажмите нужный трек в списке.`\n`/language меняет язык. | |
 | results_header | `<b>{query}</b>` | `<b>{query}</b>` | `<b>{query}</b>` | |
-| result_line | `{index}. {track} · {duration}` | `{index}. {track} · {duration}` | `{index}. {track} · {duration}` | here `{track}` is cut to 90 chars |
+| result_label | `{label} · {duration}` | `{label} · {duration}` | `{label} · {duration}` | track button; `{label}` is `Title - Artist` or `Title`, shortened per "Track label"; plain text, not escaped (buttons have no parse mode) |
 | pager_back | ‹ Back | ‹ Назад | ‹ Назад | button |
 | pager_next | Next › | Далі › | Далее › | button |
 | pager_counter | `{page} / {pages}` | `{page} / {pages}` | `{page} / {pages}` | disabled button |
-| track_loading | … | … | … | disabled button, slot `loading` icon |
+| track_loading | Loading… | Завантаження… | Загрузка… | disabled button, slot `loading` icon |
 | no_results | Nothing found for “{query}”. Try fewer words or another spelling. | За запитом «{query}» нічого не знайдено. Спробуйте коротший запит або інше написання. | По запросу «{query}» ничего не нашлось. Попробуйте запрос покороче или другое написание. | |
 | search_failed | SoundCloud isn't responding. Try again in a minute. | SoundCloud не відповідає. Спробуйте ще раз за хвилину. | SoundCloud не отвечает. Попробуйте ещё раз через минуту. | slot `error` may prefix |
 | query_too_long | That's too long for a search. Try just the artist and title. | Задовгий запит. Спробуйте лише виконавця й назву. | Слишком длинный запрос. Попробуйте только исполнителя и название. | |
@@ -207,7 +223,7 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
 | unknown_command | There's no such command. Try /help. | Такої команди немає. Спробуйте /help. | Такой команды нет. Попробуйте /help. | |
 | too_long | This track is too long for Telegram ({duration}). Try a shorter version. | Цей трек задовгий для Telegram ({duration}). Спробуйте коротшу версію. | Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче. | alert, under 200 chars |
 | too_large | “{track}” is too large for Telegram. Try a shorter version. | Трек «{track}» завеликий для Telegram. Спробуйте коротшу версію. | Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче. | message |
-| download_failed | Couldn't get “{track}”. Tap its number to try again, or pick another one. | Не вдалося завантажити «{track}». Натисніть його номер, щоб спробувати ще раз, або виберіть інший. | Не получилось загрузить «{track}». Нажмите его номер, чтобы попробовать ещё раз, или выберите другой. | slot `error` may prefix |
+| download_failed | Couldn't get “{track}”. Tap it again to retry, or pick another one. | Не вдалося завантажити «{track}». Натисніть на нього ще раз або виберіть інший. | Не получилось загрузить «{track}». Нажмите на него ещё раз или выберите другой. | slot `error` may prefix |
 | already_loading | Already on its way. | Уже завантажується. | Уже загружается. | toast |
 | results_expired | These results have expired. Send the name again. | Ці результати застаріли. Надішліть назву ще раз. | Эти результаты устарели. Пришлите название ещё раз. | toast |
 | cmd_start | Start the bot | Запустити бота | Запустить бота | command description |
@@ -225,7 +241,8 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
 |------|-------|------|
 | `hello` | start of `welcome` | message entity |
 | `language` | `language_button` | button icon |
-| `loading` | loading number button | button icon (an animated one suits it) |
+| `track` | every track button | button icon |
+| `loading` | loading track button | button icon (an animated one suits it) |
 | `error` | start of `search_failed`, `download_failed` | message entity |
 
 ## Edge cases & errors
@@ -237,7 +254,7 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
 - **Too large after download** (the file turns out over 50 MB): the button is restored,
   and `too_large` is sent as a new message.
 - **Download failure or timeout** (assumed 3 min): the button is restored, and
-  `download_failed` is sent as a new message. Tapping the number again retries.
+  `download_failed` is sent as a new message. Tapping the track again retries.
 - **No artwork, or the cover fails to download or convert:** fall through to the
   uploader avatar, then the default cover. The user sees no difference in flow.
 - **Slow download:** the loading button stays, and the chat action keeps repeating. No
@@ -249,9 +266,11 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
   loading if it is on the shown page.
 - **Expired results** (cache TTL gone): any tap is answered with toast `results_expired`,
   and the message's keyboard is removed so no dead buttons are left.
-- **Long or emoji-heavy titles:** HTML-escaped, cut per the rules above. Emoji in titles
-  are kept as user content. Lines wrap in the message; buttons are numbers only, so
-  nothing truncates.
+- **Long or emoji-heavy titles:** shortened per "Track label" before Telegram can cut
+  them, so the duration always shows. Emoji in titles are kept as user content and count
+  as 2 characters. Newlines and control characters in titles become spaces.
+- **Two labels on a page end up identical** (same title, artist dropped, same duration):
+  accepted for the MVP; the cover and performer in the delivered audio tell them apart.
 - **Query over 100 characters:** `query_too_long`.
 - **Link** (text with a URL): `link_not_supported`.
 - **Sticker, voice, photo, file or other non-text:** `not_text`.
@@ -263,10 +282,13 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
 
 - Parse mode HTML for every message. Custom emoji go in as `<tg-emoji emoji-id="…">`
   with the slot's alt emoji inside. Toasts, alerts and command texts carry no emoji.
-- Every callback is answered: without text for numbers, pages and languages; with a
+- Every callback is answered: without text for tracks, pages and languages; with a
   toast or alert only where this spec says.
 - Edited, never re-sent: the language picker inside the welcome, the `/language` picker,
-  pages of the results message, and the loading state of a number button.
+  pages of the results message, and the loading state of a track button (only the
+  keyboard is edited for loading and restore).
+- Track buttons: one per row, callback data `<session_id>:<index>` as in ARCHITECTURE,
+  `icon_custom_emoji_id` from the `track` slot when set, no `style`.
 - New messages: welcome, `/help`, results, errors, audio.
 - Chat actions: `typing` during search; `upload_document` every 4 s during a download
   (there is no audio chat action).
@@ -291,10 +313,38 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
 - Store the cleaned performer and title in `tracks` (`artist`, `title`), so the cached
   and the results-list forms always match.
 
+## Rich cards spike
+
+Owner decision 2026-10-10: before the Search UX PR, a throwaway script (not merged, no
+handlers) tests rich-message track cards on real devices. The result decides whether
+cards replace the track buttons in a later PR; callbacks and the search session stay the
+same either way.
+
+What the script sends to the owner and two or three friends:
+
+1. One `sendRichMessage` with the query as a heading and 5 cards. Each card is a
+   paragraph (`<tg-emoji>` slot, bold title, then `Artist · m:ss`) and a right-aligned
+   buttons block with one callback button; plus a pager row as `reply_markup`. Use one
+   real long title (60+ characters) and one with emoji.
+2. The same cards with the title itself as an inline `<tg-button style="link">`.
+3. On a tap: `editMessageText` with `rich_message`, swapping that card's button to a
+   disabled "Loading…" one, then back after 3 s; and one page change.
+
+What the owner checks, on iPhone, Android, Telegram Desktop, Web (K and A) and any
+third-party client a friend uses:
+
+- Does it render at all, and what does a client without support show?
+- How it looks next to the plain button version: spacing, long titles, alignment.
+- The notification text and the chat-list preview, and whether any Unicode fallback
+  emoji leak into them.
+- Tap targets: easy to hit with a thumb, no mis-taps between cards.
+- Edits: does the message jump, flicker or scroll when one button changes or a page turns?
+- Callback answers arrive as with normal inline buttons.
+
 ## Out of scope
 
 - Admin replies for `/invite`, `/revoke`, `/ban` (short spec with the invite PR).
-- Rich messages, inline mode, favourites, history, YouTube.
+- Rich message cards (see the spike above), inline mode, favourites, history, YouTube.
 - Reactions: in private chats they would be regular emoji, which the guide forbids.
 - Later idea: a caption on delivered audio with a link to the bot, so friends who
   receive a forwarded track can find it. Not wanted for now (Owner, 2026-10-10).

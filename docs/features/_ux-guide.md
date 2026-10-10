@@ -40,9 +40,10 @@ Cross-cutting UX decisions for every feature spec. Extends "UX principles" in
 
 - Quotes: EN `“…”`, UK and RU `«…»`.
 - Separator between title and duration: ` · `. Duration `m:ss`, or `h:mm:ss` from 1 hour.
-- Track display: `Artist - Title` from cleaned metadata: a title of the form `X - Y` is
-  split into performer `X` and title `Y`, and junk like "(Official Audio)" is removed.
-  Rules in the MVP spec, "Clean metadata".
+- Track display in messages: `Artist - Title` (matches the audio player). On track
+  buttons: `Title - Artist · m:ss`, artist cut first, duration always kept. Both use
+  cleaned metadata: a title of the form `X - Y` is split into performer `X` and title
+  `Y`, and junk like "(Official Audio)" is removed. Rules in the MVP spec.
 - Ellipsis is the single character `…`.
 - Language names are always in their own language, without flags: English, Українська,
   Русский.
