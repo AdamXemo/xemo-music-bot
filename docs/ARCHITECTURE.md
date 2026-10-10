@@ -29,10 +29,11 @@ src/xemo_music_bot/
 ├── config.py            # pydantic-settings; the only place env vars are read
 ├── logging_setup.py     # root logger configuration, called once at startup
 ├── bot/
+│   ├── dispatcher.py    # build_dispatcher(): attaches every feature router
 │   ├── handlers/        # one router per feature: start, search, library, admin
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
 │   ├── middlewares/     # access control, DB session, throttling
-│   └── locales/         # en.py, uk.py, ru.py: every user-facing string (ADR 0005)
+│   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005)
 ├── core/
 │   ├── models.py        # domain dataclasses: Track, Playlist, Profile
 │   └── services/        # search, delivery, access, library
