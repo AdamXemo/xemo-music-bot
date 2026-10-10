@@ -11,6 +11,8 @@ Versioning: [SemVer](https://semver.org/).
 - Repo conventions: PR and issue templates, `.gitignore`, `.editorconfig`, MIT license.
 - `plan-reviewer` subagent and agent team roster.
 - `agent-engineer` subagent for designing and auditing the other agents.
+- Project skeleton: `uv` package on Python 3.13, typed settings via pydantic-settings,
+  logging setup, `python -m xemo_music_bot` entrypoint, `.env.example`.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.

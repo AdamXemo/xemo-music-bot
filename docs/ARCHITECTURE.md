@@ -27,6 +27,7 @@ so the future Mini App backend (FastAPI) can reuse it unchanged.
 src/xemo_music_bot/
 ├── __main__.py          # entrypoint: build bot + dispatcher, start polling
 ├── config.py            # pydantic-settings; the only place env vars are read
+├── logging_setup.py     # root logger configuration, called once at startup
 ├── bot/
 │   ├── handlers/        # one router per feature: start, search, library, admin
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
