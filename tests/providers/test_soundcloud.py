@@ -47,7 +47,7 @@ class FakeExtractor:
         return {"_type": "playlist", "id": url, "entries": self.entries}
 
 
-async def test_search_maps_entries_to_clean_tracks() -> None:
+async def test_search_turns_yt_dlp_entry_into_clean_track() -> None:
     extractor = FakeExtractor(ENTRY)
 
     tracks = await SoundCloudProvider(extractor).search("  instant   crush ", limit=5)
@@ -69,14 +69,15 @@ async def test_search_maps_entries_to_clean_tracks() -> None:
 @pytest.mark.parametrize(
     ("thumbnails", "expected"),
     [
-        (
+        pytest.param(
             [{"url": "https://a1.sndcdn.com/images/default_avatar.png"}],
             "https://a1.sndcdn.com/images/default_avatar.png",
+            id="single unsized url is used",
         ),
-        (None, None),
+        pytest.param(None, None, id="no thumbnails gives no artwork"),
     ],
 )
-async def test_search_falls_back_for_artwork(
+async def test_search_artwork_fallback(
     thumbnails: list[dict[str, str]] | None, expected: str | None
 ) -> None:
     extractor = FakeExtractor({**ENTRY, "thumbnails": thumbnails})
@@ -86,7 +87,9 @@ async def test_search_falls_back_for_artwork(
     assert track.artwork_url == expected
 
 
-@pytest.mark.parametrize("missing", ["id", "title", "duration", "webpage_url"])
+@pytest.mark.parametrize(
+    "missing", ["id", "title", "duration", "webpage_url"], ids=lambda field: f"without {field}"
+)
 async def test_search_skips_entries_without_required_fields(missing: str) -> None:
     broken = {key: value for key, value in ENTRY.items() if key != missing}
     extractor = FakeExtractor(broken, {**ENTRY, "id": "2"})
@@ -104,32 +107,34 @@ async def test_search_leaves_artist_empty_without_uploader() -> None:
     assert (track.artist, track.title) == ("", "Instant Crush")
 
 
-async def test_search_returns_nothing_when_no_results() -> None:
+async def test_search_returns_empty_list_when_nothing_found() -> None:
     tracks = await SoundCloudProvider(FakeExtractor()).search("zzzz", limit=5)
 
     assert tracks == []
 
 
-async def test_search_skips_yt_dlp_for_blank_query() -> None:
+async def test_search_does_not_call_yt_dlp_for_blank_query() -> None:
     extractor = FakeExtractor(ENTRY)
 
-    assert await SoundCloudProvider(extractor).search(" \n ", limit=5) == []
+    tracks = await SoundCloudProvider(extractor).search(" \n ", limit=5)
+
+    assert tracks == []
     assert extractor.calls == []
 
 
-async def test_search_rejects_non_positive_limit() -> None:
+async def test_search_rejects_limit_below_one() -> None:
     with pytest.raises(ValueError, match="limit"):
         await SoundCloudProvider(FakeExtractor()).search("instant crush", limit=0)
 
 
-async def test_search_wraps_yt_dlp_errors() -> None:
+async def test_search_raises_provider_error_when_yt_dlp_fails() -> None:
     extractor = FakeExtractor(error=DownloadError("Unable to download API page"))
 
     with pytest.raises(ProviderError, match="Unable to download API page"):
         await SoundCloudProvider(extractor).search("instant crush", limit=5)
 
 
-async def test_search_limits_concurrent_yt_dlp_calls() -> None:
+async def test_search_runs_at_most_max_concurrency_yt_dlp_calls() -> None:
     running = 0
     peak = 0
     lock = threading.Lock()
@@ -145,6 +150,7 @@ async def test_search_limits_concurrent_yt_dlp_calls() -> None:
         return {"entries": []}
 
     provider = SoundCloudProvider(slow_extractor, max_concurrency=2)
+
     await asyncio.gather(*(provider.search(f"query {n}", limit=1) for n in range(5)))
 
     assert peak == 2

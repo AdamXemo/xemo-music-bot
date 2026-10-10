@@ -9,6 +9,7 @@ import re
 from dataclasses import dataclass
 
 _JUNK = (
+    # English, from the spec.
     "official audio",
     "official video",
     "official music video",
@@ -18,8 +19,27 @@ _JUNK = (
     "free download",
     "free dl",
     "out now",
+    # Russian and Ukrainian counterparts seen on SoundCloud.
+    "официальное аудио",
+    "официальное видео",
+    "официальный клип",
+    "офіційне аудіо",
+    "офіційне відео",
+    "офіційний кліп",
+    "премьера",
+    "премьера клипа",
+    "премьера трека",
+    "прем'єра",
+    "прем'єра кліпу",
+    "прем'єра треку",
+    "текст песни",
+    "текст пісні",
 )
-_JUNK_ALTERNATIVES = "|".join(junk.replace(" ", r"\s+") for junk in _JUNK)
+_JUNK_ALTERNATIVES = "|".join(
+    # Ukrainian uploads write the apostrophe as ', \u2019 or \u02bc.
+    junk.replace(" ", r"\s+").replace("'", "['\u2019\u02bc]")
+    for junk in _JUNK
+)
 # One junk tag at the very end, in () or [] or after a |.
 _JUNK_SUFFIX_RE = re.compile(
     rf"\s*(?:[(\[]\s*(?:{_JUNK_ALTERNATIVES})\s*[)\]]|\|\s*(?:{_JUNK_ALTERNATIVES}))\s*$",
@@ -27,6 +47,11 @@ _JUNK_SUFFIX_RE = re.compile(
 )
 # Hyphen, en dash or em dash with whitespace around it, so "Jay-Z" is not split.
 _SEPARATOR_RE = re.compile(r"\s+[-\u2013\u2014]\s+")
+# "01. Track" or "1) Track" from album rips. A dot or bracket is required, so names
+# like "99 Problems" or the band 311 are left alone.
+_TRACK_NUMBER_RE = re.compile(r"^\d{1,3}[.)]\s+")
+# Opening quote -> closing quote: "", \u00ab\u00bb, \u201c\u201d and \u201e\u201c.
+_QUOTE_PAIRS = {'"': '"', "\u00ab": "\u00bb", "\u201c": "\u201d", "\u201e": "\u201c"}
 _CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
 _WORD_RE = re.compile(r"[^\W_]+")
 # Words that only describe a version. When everything after the separator is made of
@@ -37,6 +62,7 @@ _VERSION_WORDS = frozenset(
         "acoustic",
         "bootleg",
         "club",
+        "cover",
         "demo",
         "dub",
         "edit",
@@ -54,6 +80,9 @@ _VERSION_WORDS = frozenset(
         "unplugged",
         "version",
         "vip",
+        "кавер",
+        "ремикс",
+        "ремікс",
     ]
 )
 
@@ -85,14 +114,16 @@ def clean_track_name(raw_title: str, uploader: str) -> TrackName:
     """
     title = _normalize_space(raw_title)
     uploader = _normalize_space(uploader)
-    stripped = _strip_junk(title)
-    if not stripped:
-        return TrackName(artist=uploader, title=title)
+    artist, name = uploader, _strip_junk(_strip_track_number(title))
 
-    parts = _SEPARATOR_RE.split(stripped, maxsplit=1)
+    parts = _SEPARATOR_RE.split(name, maxsplit=1)
     if len(parts) == 2 and all(parts) and not _is_version_tag(parts[1]):
-        return TrackName(artist=parts[0], title=parts[1])
-    return TrackName(artist=uploader, title=stripped)
+        artist, name = parts[0], _strip_track_number(parts[1])
+
+    name = _unquote(name)
+    if not name:
+        return TrackName(artist=uploader, title=title)
+    return TrackName(artist=artist, title=name)
 
 
 def _normalize_space(text: str) -> str:
@@ -100,11 +131,25 @@ def _normalize_space(text: str) -> str:
     return " ".join(_CONTROL_CHARS_RE.sub(" ", text).split())
 
 
+def _strip_track_number(title: str) -> str:
+    """Remove a leading album track number such as ``01.``."""
+    return _TRACK_NUMBER_RE.sub("", title)
+
+
 def _strip_junk(title: str) -> str:
     """Remove junk tags from the end of ``title``, repeatedly, as they can be stacked."""
     while (stripped := _JUNK_SUFFIX_RE.sub("", title)) != title:
         title = stripped
     return title
+
+
+def _unquote(title: str) -> str:
+    """Drop one pair of quotes around the whole title, as in ``Artist - "Track"``."""
+    closing = _QUOTE_PAIRS.get(title[:1])
+    inner = title[1:-1]
+    if closing is None or len(title) < 3 or title[-1] != closing or closing in inner:
+        return title
+    return inner.strip()
 
 
 def _is_version_tag(text: str) -> bool:

@@ -13,5 +13,11 @@ metadata:
   (ruff RUF001 caught it). **How to apply:** after writing code or tests that mention
   dashes, grep for `[\x{2013}\x{2014}]` and fix with
   `sed -i 's/\xe2\x80\x93/\\u2013/g; s/\xe2\x80\x94/\\u2014/g'`.
+- RUF001 flags Cyrillic words made only of Latin look-alikes ("Егор", or a word next to a
+  `«` escape); tests/core/test_metadata.py has a commented per-file ignore for it.
+  pytest escapes non-ASCII parametrize ids (`О...`), so keep ids ASCII.
+- Owner wants table tests as a readable spec: one test per rule, `pytest.param(..., id=)`
+  with `en:`/`ru:`/`uk:` prefixes, explicit known-limitation cases, failure message
+  showing input / expected / actual.
 - `ruff check --fix` (SIM905) rewrites `"a b c".split()` into a list literal, which
   `ruff format` then explodes one item per line; just write the set/list directly.
