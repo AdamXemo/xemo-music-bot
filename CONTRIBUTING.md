@@ -4,8 +4,8 @@ Conventions for humans and agents. Short on purpose - follow it strictly.
 
 ## Branches
 
-`main` is protected once CI lands (Phase 0): changes land only through PRs with green CI.
-Until then, never push to it directly.
+`main` is protected: changes land only through PRs with a green CI check, history stays
+linear, and the rules apply to admins too.
 
 | Prefix      | Use for                              | Example                    |
 |-------------|--------------------------------------|----------------------------|

@@ -20,7 +20,7 @@ Goal: an empty but production-shaped repo. No features yet.
 - [x] Tooling: ruff, mypy strict, pytest, pre-commit hooks
 - [x] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
       `.github/dependabot.yml` (uv + github-actions, weekly) to keep yt-dlp current
-- [ ] Branch protection on `main`: PR required, CI status check required, applies to admins
+- [x] Branch protection on `main`: PR required, CI status check required, applies to admins
 - [x] Bot hello-world: `/start` replies, bot runs locally via long polling
 - [ ] Docker: `Dockerfile` (with ffmpeg) + `docker-compose.yml` (bot, postgres, redis);
       proves `docker compose up` runs the hello-world bot
