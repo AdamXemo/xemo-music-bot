@@ -15,6 +15,8 @@ Versioning: [SemVer](https://semver.org/).
   logging setup, `python -m xemo_music_bot` entrypoint, `.env.example`.
 - Tooling: ruff (format + lint), mypy strict with the pydantic plugin, pytest with
   asyncio and coverage, pre-commit hooks; first tests for settings.
+- `python-engineer` subagent for implementing roadmap items; the main session becomes
+  the orchestrator that delegates and owns git and PRs.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.

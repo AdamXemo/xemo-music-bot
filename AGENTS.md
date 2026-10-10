@@ -85,19 +85,25 @@ All four checks (format, lint, mypy, pytest) must pass before you call a task do
 ## Agent team
 
 Specialised subagents live in `.claude/agents/` (one markdown file each, committed).
-The main session acts as the **software engineer** and delegates focused work to them.
-Subagents report back; only the main session edits code unless a role says otherwise.
+The main session is the **orchestrator**: it picks the roadmap item, creates the branch,
+delegates implementation to `python-engineer` and focused work to the other roles,
+reviews their reports, and owns git (commits, pushes, PRs). This keeps the long-lived
+main context free of implementation detail. Subagents report back to the main session;
+`python-engineer` writes production code and tests, and other roles edit only what their
+role names. Trivial fixes (a typo, a one-line doc change) the main session may do itself.
 
-| Agent            | Role                                                    | Status  |
-|------------------|---------------------------------------------------------|---------|
-| `agent-engineer` | Designs, audits and improves the other agents           | ✅ ready |
-| `plan-reviewer`  | Critiques ROADMAP / ARCHITECTURE / ADRs, proposes fixes | ✅ ready |
-| `ux-designer`    | Message flows, keyboards, copy in `texts.py`, Mini App UI | 💤 Phase 1 |
-| `db-architect`   | Schema, migrations, indexes, query review               | 💤 Phase 1 |
-| `qa-reviewer`    | Reviews diffs for bugs, missing tests, rule violations  | 💤 Phase 1 |
-| `brainstormer`   | Feature ideas tailored to the friend group → backlog    | 💤 later |
+| Agent             | Role                                                    | Status  |
+|-------------------|---------------------------------------------------------|---------|
+| `agent-engineer`  | Designs, audits and improves the other agents           | ✅ ready |
+| `plan-reviewer`   | Critiques ROADMAP / ARCHITECTURE / ADRs, proposes fixes | ✅ ready |
+| `python-engineer` | Implements one roadmap item: code, tests, PR text       | ✅ ready |
+| `ux-designer`     | Message flows, keyboards, copy in `texts.py`, Mini App UI | 💤 Phase 1 |
+| `db-architect`    | Designs and reviews schema, migrations, indexes, queries | 💤 Phase 1 |
+| `qa-reviewer`     | Reviews diffs for bugs, missing tests, rule violations  | 💤 Phase 1 |
+| `brainstormer`    | Feature ideas tailored to the friend group → backlog    | 💤 later |
 
-Add a role only when there's real work for it; tune prompts as we learn what helps.
+Before a new kind of big task starts (DB design, UX, review, deployment), create its agent
+first, then hand the work to it. Tune prompts as we learn what helps.
 New agents and changes to existing ones go through `agent-engineer`.
 
 ## Never
