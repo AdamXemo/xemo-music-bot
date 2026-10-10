@@ -10,3 +10,4 @@ Versioning: [SemVer](https://semver.org/).
 - Project planning docs: AGENTS.md, roadmap, architecture, contributing guide, ADRs 0001–0004.
 - Repo conventions: PR and issue templates, `.gitignore`, `.editorconfig`, MIT license.
 - `plan-reviewer` subagent and agent team roster.
+- `agent-engineer` subagent for designing and auditing the other agents.
