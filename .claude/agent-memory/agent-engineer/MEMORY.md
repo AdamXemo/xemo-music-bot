@@ -1,1 +1,1 @@
-- [Agent design lessons](agent-design-lessons.md) - settled decisions in ADRs, read-only vs editing agents, git-blocking hooks, orchestrator team model, interview relay pattern, changelog/roster habit
+- [Agent design lessons](agent-design-lessons.md) - settled decisions in ADRs, read-only vs editing agents, git-blocking hooks, read-only Bash guards, shared review format, orchestrator team model, interview relay pattern, changelog/roster habit

@@ -19,6 +19,8 @@ Versioning: [SemVer](https://semver.org/).
   the orchestrator that delegates and owns git and PRs.
 - `ux-designer` subagent with an interview-first workflow.
 - ADR 0005 (proposed): English, Ukrainian and Russian via typed in-code catalogs.
+- `qa-reviewer` (read-only review of python-engineer's changes) and `db-architect`
+  (schema, migration and Redis key design and review) subagents.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
