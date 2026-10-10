@@ -18,8 +18,8 @@ The bot is built for a small circle of friends and sits in a legal grey zone
 
 ## Alternatives considered
 
-- **Open to everyone** — more exposure and risk, no benefit for the target audience.
-- **Hard-coded ID list in config** — no self-service onboarding; redeploy per friend.
+- **Open to everyone** - more exposure and risk, no benefit for the target audience.
+- **Hard-coded ID list in config** - no self-service onboarding; redeploy per friend.
 
 ## Consequences
 

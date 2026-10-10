@@ -1,6 +1,6 @@
 # xemo-music-bot
 
-A clean, private Telegram music bot: search a track, tap it, listen — inside Telegram,
+A clean, private Telegram music bot: search a track, tap it, listen - inside Telegram,
 offline-friendly, no ads, no clutter.
 
 > 🚧 Early development. See the [roadmap](docs/ROADMAP.md).
@@ -8,7 +8,7 @@ offline-friendly, no ads, no clutter.
 ## Features (planned for v0.1)
 
 - 🔎 Search SoundCloud and get results in a single, tidy message
-- 🎧 Receive tracks as Telegram audio (with cover, title, artist) — playable offline
+- 🎧 Receive tracks as Telegram audio (with cover, title, artist) - playable offline
 - ⚡ Instant repeat sends via Telegram `file_id` caching
 - 🔐 Invite-only access for a small group of friends
 

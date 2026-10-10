@@ -13,8 +13,8 @@ What we decided, stated plainly.
 
 ## Alternatives considered
 
-- **Option A** — why not.
-- **Option B** — why not.
+- **Option A** - why not.
+- **Option B** - why not.
 
 ## Consequences
 

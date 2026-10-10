@@ -1,6 +1,6 @@
 # Contributing
 
-Conventions for humans and agents. Short on purpose — follow it strictly.
+Conventions for humans and agents. Short on purpose - follow it strictly.
 
 ## Branches
 
@@ -15,7 +15,7 @@ Conventions for humans and agents. Short on purpose — follow it strictly.
 | `ci/`       | GitHub Actions / deployment          | `ci/build-docker-image`    |
 | `docs/`     | documentation only                   | `docs/adr-hosting`         |
 
-## Commit messages — [Conventional Commits](https://www.conventionalcommits.org/)
+## Commit messages - [Conventional Commits](https://www.conventionalcommits.org/)
 
 ```
 <type>(<scope>): <imperative summary, ≤ 72 chars, no period>
@@ -45,7 +45,7 @@ first one's future and reuses its Telegram file_id.
 Refs #14
 ```
 
-Commits inside a PR branch can be small and messy (`wip`, `fixup`) — they get squashed.
+Commits inside a PR branch can be small and messy (`wip`, `fixup`) - they get squashed.
 Only the PR title + description end up on `main`, so make those good.
 
 ## Pull requests
@@ -65,6 +65,13 @@ Only the PR title + description end up on `main`, so make those good.
 - Each roadmap phase ends with a minor version tag.
 - [`CHANGELOG.md`](CHANGELOG.md) follows [Keep a Changelog](https://keepachangelog.com/);
   every PR adds a line under `Unreleased`.
+
+## Writing style
+
+Applies to commits, PR descriptions, issues, docs and code comments.
+
+- Use a plain hyphen `-`, never em/en dashes (`—`, `–`).
+- No AI attribution: no "Generated with ...", no `Co-Authored-By` lines for tools.
 
 ## Code style
 
@@ -99,8 +106,8 @@ class DeliveryService:
         ...
 ```
 
-- ✅ `# Telegram caps bot uploads at 50 MB; ...` — explains a constraint you can't see.
-- ❌ `# check if track is too long` — repeats the code.
+- ✅ `# Telegram caps bot uploads at 50 MB; ...` - explains a constraint you can't see.
+- ❌ `# check if track is too long` - repeats the code.
 - One-line docstrings are fine for small private helpers; skip `Args:` when obvious.
 
 ## Decisions

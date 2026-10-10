@@ -8,15 +8,15 @@
 The bot needs a large mainstream catalogue with full-length tracks delivered as Telegram
 audio. Options researched (Oct 2026):
 
-- **SoundCloud official API** — needs an Artist Pro subscription to register an app.
+- **SoundCloud official API** - needs an Artist Pro subscription to register an app.
   Its terms forbid downloading/caching content and uploading it to third-party
   platforms, which is exactly what delivering a Telegram audio message does. OAuth
   ("Connect with SoundCloud") is allowed and supported (OAuth 2.1 + PKCE).
-- **yt-dlp** — extracts audio and public profile data (likes, playlists) from
+- **yt-dlp** - extracts audio and public profile data (likes, playlists) from
   SoundCloud and YouTube without API keys. Not permitted by either platform's terms.
-- **YouTube** — strong anti-bot measures (PO tokens, datacenter IP blocking) make it
+- **YouTube** - strong anti-bot measures (PO tokens, datacenter IP blocking) make it
   unreliable from typical VPS hosting.
-- **Audius / Jamendo** — legitimate but catalogue too limited; rejected by the owner.
+- **Audius / Jamendo** - legitimate but catalogue too limited; rejected by the owner.
 
 No Telegram music bot of note operates under a label licence; they rely on scrapers or
 unofficial APIs. A licensed, public version of this project is not realistically possible.
@@ -30,8 +30,8 @@ unofficial APIs. A licensed, public version of this project is not realistically
 
 ## Alternatives considered
 
-- **Official SoundCloud API only** — cannot deliver audio within its terms.
-- **Audius / Jamendo** — catalogue too limited.
+- **Official SoundCloud API only** - cannot deliver audio within its terms.
+- **Audius / Jamendo** - catalogue too limited.
 
 ## Consequences
 

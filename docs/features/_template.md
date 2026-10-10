@@ -1,6 +1,6 @@
 # Feature: <name>
 
-- **Roadmap item:** Phase N — <item>
+- **Roadmap item:** Phase N - <item>
 - **Status:** Draft | Approved | Shipped
 
 ## Goal

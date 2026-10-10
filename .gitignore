@@ -19,7 +19,7 @@ htmlcov/
 !.env.example
 cookies*.txt
 
-# Audio / downloads (never committed — see AGENTS.md)
+# Audio / downloads (never committed - see AGENTS.md)
 *.mp3
 *.m4a
 *.opus

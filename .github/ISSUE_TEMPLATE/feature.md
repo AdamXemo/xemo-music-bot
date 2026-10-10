@@ -10,7 +10,7 @@ labels: feature
 
 ## Roadmap
 
-Phase N — <item>, or "backlog"
+Phase N - <item>, or "backlog"
 
 ## Acceptance criteria
 
