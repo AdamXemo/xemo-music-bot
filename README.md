@@ -16,6 +16,16 @@ offline-friendly, no ads, no clutter.
 
 Python 3.13 · aiogram 3 · yt-dlp · PostgreSQL · Redis · Docker · GitHub Actions
 
+## Development
+
+Requires [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 for you).
+
+```bash
+uv sync                          # create .venv and install dependencies
+cp .env.example .env             # then fill in BOT_TOKEN and ADMIN_IDS
+uv run python -m xemo_music_bot  # run
+```
+
 ## Documentation
 
 - [Roadmap](docs/ROADMAP.md) · [Architecture](docs/ARCHITECTURE.md) ·
