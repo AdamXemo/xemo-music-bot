@@ -1,6 +1,6 @@
 # 0001. Use Python 3.13 with aiogram 3
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-06
 
 ## Context

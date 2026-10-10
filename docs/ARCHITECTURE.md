@@ -53,6 +53,8 @@ tests/                   # mirrors src/ layout
 1. User sends text → `search` handler → `SearchService.search(query, page)`.
 2. Service calls the provider (results cached in Redis for a few minutes).
 3. Handler renders **one** message with inline buttons; pagination edits that message.
+   Callback data carries only `<session_id>:<page>` or `<provider>:<track_id>`; the query
+   and results live in Redis, because Telegram limits callback data to 64 bytes.
 
 ### Delivery (tap a track)
 1. `DeliveryService.get_audio(track_ref)` checks `tracks.tg_file_id`.
@@ -69,8 +71,8 @@ message; `/start <invite_code>` is the only path in. Admins are set in config.
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` PK, `username`, `role`, `created_at` |
-| `invites` | One-time / limited invite codes | `code`, `created_by`, `max_uses`, `uses`, `expires_at` |
+| `users`   | Telegram users who joined       | `tg_id` PK, `username`, `role` (`admin` / `user` / `blocked`), `invited_by`, `created_at` |
+| `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 
 Later phases add `linked_profiles`, `favorites`, `history`.

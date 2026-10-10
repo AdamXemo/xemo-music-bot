@@ -1,6 +1,6 @@
 # 0003. Restrict access with an allowlist and invite codes
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-06
 
 ## Context
@@ -15,6 +15,8 @@ The bot is built for a small circle of friends and sits in a legal grey zone
 - New users join via deep link `t.me/<bot>?start=<code>`; codes can expire and have a
   use limit.
 - Strangers receive one short "this bot is private" reply and nothing else.
+- Admins can revoke access: `/revoke <code>` kills an invite, `/ban <user>` sets the
+  user's role to `blocked`, which the middleware rejects.
 
 ## Alternatives considered
 
