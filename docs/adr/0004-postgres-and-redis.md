@@ -1,6 +1,6 @@
 # 0004. Use PostgreSQL for persistence and Redis for caching
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-10-06
 
 ## Context

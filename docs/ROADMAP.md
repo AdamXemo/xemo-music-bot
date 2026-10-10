@@ -14,37 +14,53 @@ Goal: an empty but production-shaped repo. No features yet.
 - [x] Planning docs: AGENTS.md, ROADMAP, ARCHITECTURE, CONTRIBUTING, ADRs 0001-0004
 - [x] Repo conventions: PR/issue templates, `.gitignore`, `.editorconfig`, LICENSE
 - [x] Agent team: first subagent (`plan-reviewer`) + roster in AGENTS.md
-- [ ] Git repo + GitHub remote, branch protection on `main` (PR required, CI must pass)
+- [x] Git repo + GitHub remote, squash-merge only, auto-delete merged branches
 - [ ] Project skeleton: `uv` project, `src/xemo_music_bot/` package, `config.py`, logging
 - [ ] Tooling: ruff, mypy strict, pytest, pre-commit hooks
-- [ ] CI: GitHub Actions running format check, lint, mypy, tests on every PR
-- [ ] Docker: `Dockerfile` (with ffmpeg) + `docker-compose.yml` (bot, postgres, redis)
+- [ ] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
+      `.github/dependabot.yml` (uv + github-actions, weekly) to keep yt-dlp current
+- [ ] Branch protection on `main`: PR required, CI status check required, applies to admins
 - [ ] Bot hello-world: `/start` replies, bot runs locally via long polling
+- [ ] Docker: `Dockerfile` (with ffmpeg) + `docker-compose.yml` (bot, postgres, redis);
+      proves `docker compose up` runs the hello-world bot
 
 ## Phase 1 - MVP: search & listen ⏳ → `v0.1.0`
 
 Goal: friends can search SoundCloud and receive tracks as audio messages.
 
-- [ ] DB layer: SQLAlchemy async engine, Alembic, `users` table, session middleware
+- [ ] Agent team: create `db-architect` and `qa-reviewer` via `agent-engineer`
+- [ ] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
+      migration (incl. `invited_by`), Postgres service container in CI
+- [ ] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
 - [ ] Access control: allowlist middleware, admin role from config, "private bot" reply
-- [ ] Invite codes: `/invite` (admin) generates code, `/start <code>` deep link onboards
+- [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
+      a code, `/start <code>` deep link onboards
+- [ ] Revocation: `/revoke <code>` and `/ban <user>` (admin); `role = 'blocked'` is
+      rejected by the access middleware
 - [ ] Provider interface (`MusicProvider`) + SoundCloud provider: search
+- [ ] Redis: client from config, aiogram `RedisStorage`, search session cache
+      (results stored under a short id with TTL)
 - [ ] Search UX: text message → one results message, inline buttons, pagination by edit
-- [ ] Delivery: download via yt-dlp → `sendAudio` with title/artist/cover/duration
+- [ ] Provider download: `MusicProvider.download()` via yt-dlp in `asyncio.to_thread`
+      behind a semaphore, temp dir always cleaned up, max-duration guard (50 MB upload cap)
+- [ ] Delivery: track button → `DeliveryService` → `sendAudio` with title/artist/cover/duration
 - [ ] `file_id` cache: `tracks` table; repeat requests are instant, no re-download
-- [ ] Concurrency: download semaphore + de-duplication of in-flight downloads
+- [ ] De-duplicate in-flight downloads of the same track
 - [ ] Error UX: friendly messages for not found / too long / source failure
+- [ ] Draft the hosting ADR (VPS vs home server) so Phase 2 starts right at `v0.1.0`
 
-> Search is **by name only**. SoundCloud links are reserved for linking a profile (Phase 3).
+> Search is **by track name only**; SoundCloud links are only for linking a profile
+> (ADR 0002).
 
 ## Phase 2 - Deploy for friends 💤 → `v0.2.0`
 
 Goal: the bot runs 24/7 and updates itself on merge.
 
-- [ ] Choose host (VPS vs home server) - ADR
+- [ ] Accept the hosting ADR and provision the host
 - [ ] Production compose file, secrets via env, healthcheck
 - [ ] CD: GitHub Actions builds image → GHCR → deploys on tag
 - [ ] Postgres backups, structured logs, basic error alerting (e.g. to admin chat)
+- [ ] Scheduled workflow: SoundCloud search + download smoke test against a known track
 
 ## Phase 3 - SoundCloud profiles 💤 → `v0.3.0`
 

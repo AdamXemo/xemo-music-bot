@@ -17,11 +17,13 @@ every PR personally. A Telegram Mini App (web player) is planned for a later pha
 |-----------------------------------|--------------------------------------------|
 | What to build next, phase status  | [docs/ROADMAP.md](docs/ROADMAP.md)         |
 | Layers, data flow, boundaries     | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Why a decision was made           | [docs/adr/](docs/adr/)                     |
+| Settled decisions (don't re-litigate) | [docs/adr/](docs/adr/)                 |
 | Spec of a feature before building | [docs/features/](docs/features/)           |
 | Commits, branches, PRs, style     | [CONTRIBUTING.md](CONTRIBUTING.md)         |
 
 Read `ROADMAP.md` and `ARCHITECTURE.md` before starting any non-trivial task.
+Accepted ADRs are the single source of truth for settled decisions: follow them, and
+raise a question instead of working against one. A decision that isn't in an ADR isn't settled.
 
 ## Stack
 

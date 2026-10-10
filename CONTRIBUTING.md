@@ -4,7 +4,8 @@ Conventions for humans and agents. Short on purpose - follow it strictly.
 
 ## Branches
 
-`main` is protected: changes land only through PRs with green CI.
+`main` is protected once CI lands (Phase 0): changes land only through PRs with green CI.
+Until then, never push to it directly.
 
 | Prefix      | Use for                              | Example                    |
 |-------------|--------------------------------------|----------------------------|
@@ -57,7 +58,7 @@ Only the PR title + description end up on `main`, so make those good.
   **Notes for reviewer** (anything non-obvious, trade-offs, follow-ups), **Checklist**.
 - Write the description for someone reading `git log` a year from now.
 - Merge strategy: **squash and merge** → `main` history is one clean commit per PR.
-- Delete the branch after merge.
+- Branches are deleted automatically after merge.
 
 ## Versioning & changelog
 

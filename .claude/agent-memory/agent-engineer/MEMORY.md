@@ -1,0 +1,1 @@
+- [Agent design lessons](agent-design-lessons.md) - settled decisions outside ADRs, no Bash/memory for read-only agents, changelog/roster habit
