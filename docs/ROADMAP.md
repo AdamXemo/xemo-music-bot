@@ -15,6 +15,7 @@ Goal: an empty but production-shaped repo. No features yet.
 - [x] Repo conventions: PR/issue templates, `.gitignore`, `.editorconfig`, LICENSE
 - [x] Agent team: first subagent (`plan-reviewer`) + roster in AGENTS.md
 - [x] Git repo + GitHub remote, squash-merge only, auto-delete merged branches
+- [x] Coding agent: `python-engineer` implements roadmap items; main session orchestrates
 - [x] Project skeleton: `uv` project, `src/xemo_music_bot/` package, `config.py`, logging
 - [x] Tooling: ruff, mypy strict, pytest, pre-commit hooks
 - [ ] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
