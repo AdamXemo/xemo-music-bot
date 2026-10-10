@@ -5,7 +5,7 @@ How the system is shaped and why. Keep this file in sync when boundaries change.
 ## Overview
 
 ```
- Telegram ──updates──▶ bot/ (aiogram: routers, middlewares, keyboards, texts)
+ Telegram ──updates──▶ bot/ (aiogram: routers, middlewares, keyboards, locales)
                           │  calls
                           ▼
                        core/ (services + domain models - no aiogram imports)
@@ -32,7 +32,7 @@ src/xemo_music_bot/
 │   ├── handlers/        # one router per feature: start, search, library, admin
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
 │   ├── middlewares/     # access control, DB session, throttling
-│   └── texts.py         # every user-facing string
+│   └── locales/         # en.py, uk.py, ru.py: every user-facing string (ADR 0005)
 ├── core/
 │   ├── models.py        # domain dataclasses: Track, Playlist, Profile
 │   └── services/        # search, delivery, access, library
@@ -72,7 +72,7 @@ message; `/start <invite_code>` is the only path in. Admins are set in config.
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` PK, `username`, `role` (`admin` / `user` / `blocked`), `invited_by`, `created_at` |
+| `users`   | Telegram users who joined       | `tg_id` PK, `username`, `role` (`admin` / `user` / `blocked`), `language` (`en` / `uk` / `ru`), `invited_by`, `created_at` |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 

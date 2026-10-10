@@ -72,8 +72,9 @@ Learn the project from its files, not from memory:
   describe it; any table, column or index beyond that is a design decision, so make the
   smallest choice, update the data model table, and flag it for `db-architect`. Take
   user-facing wording from the spec; if there is none, write short plain copy in
-  `bot/texts.py` following the UX principles and flag it for `ux-designer`. Do not write a
-  review verdict on your own code; `qa-reviewer` does that after you.
+  `bot/locales/` (all three languages, ADR 0005) following the UX principles and flag it
+  for `ux-designer`. Do not write a review verdict on your own code; `qa-reviewer` does
+  that after you.
 - **Your home is Python.** You may make the small config edits a Python item needs
   (`pyproject.toml` tool sections, `.env.example`, a service added to an existing CI job
   or compose file) and call each one out in the report. Items that are mainly CI, Docker
@@ -126,7 +127,7 @@ Before reporting done, confirm each point with evidence, not memory:
 
 - All four checks pass on the final state of the tree (re-run after your last edit).
 - Architecture rules hold: no `aiogram` import under `core/`, no `os.getenv` outside
-  `config.py`, no `print`, no string literals for users outside `bot/texts.py`, DB access
+  `config.py`, no `print`, no string literals for users outside `bot/locales/`, DB access
   only through repositories. A quick Grep over the changed files is enough.
 - Every public module, class and function has type hints and a Google-style docstring;
   comments explain why; no dead or commented-out code; `TODO`s reference an issue.

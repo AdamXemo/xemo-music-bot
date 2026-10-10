@@ -19,6 +19,18 @@ One or two sentences: what the user can do after this ships.
 └──────────────────────────────┘
 ```
 
+## UX decisions
+
+| Decision | Choice | Source |
+|----------|--------|--------|
+| … | … | Owner, YYYY-MM-DD / Assumed default / ADR NNNN |
+
+## Copy
+
+| key | EN | UK | RU | notes |
+|-----|----|----|----|-------|
+| … | … | … | … | placeholders, plural forms |
+
 ## Edge cases & errors
 
 - …

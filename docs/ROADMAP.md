@@ -29,10 +29,19 @@ Goal: an empty but production-shaped repo. No features yet.
 
 Goal: friends can search SoundCloud and receive tracks as audio messages.
 
+UX is the priority of this phase: the bot must feel polished and calm, in English, Ukrainian
+and Russian. Keep everything else as simple as it can be.
+
+- [ ] UX interview: `ux-designer` asks the owner how users interact with the bot, then
+      writes the MVP spec in `docs/features/` (onboarding, language, search, results,
+      delivery, errors): English mockups plus copy in all three languages
 - [ ] Agent team: create `db-architect` and `qa-reviewer` via `agent-engineer`
 - [ ] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
       migration (incl. `invited_by`), Postgres service container in CI
 - [ ] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
+- [ ] i18n: `bot/locales/` (en, uk, ru) per ADR 0005, `users.language`, language picked
+      on first `/start` (preselected from Telegram), `/language` to switch, localized
+      command menu
 - [ ] Access control: allowlist middleware, admin role from config, "private bot" reply
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
       a code, `/start <code>` deep link onboards
