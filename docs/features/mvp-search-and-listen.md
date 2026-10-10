@@ -2,7 +2,7 @@
 
 - **Roadmap item:** Phase 1 - UX interview (covers onboarding, language, search, results,
   delivery, errors for the Phase 1 items that implement them)
-- **Status:** Draft
+- **Status:** Approved
 
 ## Goal
 
