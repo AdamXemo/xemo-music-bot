@@ -19,7 +19,9 @@ How the system is shaped and why. Keep this file in sync when boundaries change.
 ```
 
 **Dependency rule:** arrows point one way only. `core/` knows nothing about Telegram,
-so the future Mini App backend (FastAPI) can reuse it unchanged.
+so the future Mini App backend (FastAPI) can reuse it unchanged. The one exception:
+`providers/` and `db/` may import the plain domain dataclasses in `core/models.py`
+(they return and store `Track`), never services.
 
 ## Package layout (target)
 
@@ -36,6 +38,7 @@ src/xemo_music_bot/
 │   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005)
 ├── core/
 │   ├── models.py        # domain dataclasses: Track, Playlist, Profile
+│   ├── metadata.py      # clean performer and title from raw provider metadata
 │   └── services/        # search, delivery, access, library
 ├── providers/
 │   ├── base.py          # MusicProvider protocol

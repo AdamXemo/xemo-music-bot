@@ -10,6 +10,7 @@ requires-python = ">=3.13"
 dependencies = [
     "aiogram>=3.31.0",
     "pydantic-settings>=2.15.0",
+    "yt-dlp>=2026.8.19",
 ]
 
 [project.scripts]
@@ -64,6 +65,9 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 # Tests: asserts are the point, docstrings would be noise.
 "tests/**" = ["S101", "D"]
+# Russian and Ukrainian track titles are test data: Cyrillic letters there are real,
+# not look-alikes of Latin ones. Dashes in that file are checked by review instead.
+"tests/core/test_metadata.py" = ["RUF001"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -71,6 +75,11 @@ strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# yt-dlp ships no type hints (no py.typed); its API is wrapped in providers/.
+module = ["yt_dlp", "yt_dlp.*"]
+ignore_missing_imports = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

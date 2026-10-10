@@ -47,7 +47,7 @@ and Russian. Keep everything else as simple as it can be.
       a code, `/start <code>` deep link onboards
 - [ ] Revocation: `/revoke <code>` and `/ban <user>` (admin); `role = 'blocked'` is
       rejected by the access middleware
-- [ ] Provider interface (`MusicProvider`) + SoundCloud provider: search
+- [x] Provider interface (`MusicProvider`) + SoundCloud provider: search
 - [ ] Redis: client from config, aiogram `RedisStorage`, search session cache
       (results stored under a short id with TTL)
 - [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
