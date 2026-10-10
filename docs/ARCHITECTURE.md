@@ -81,6 +81,10 @@ Later phases add `linked_profiles`, `favorites`, `history`.
 
 ## UX principles
 
+Detailed rules (voice, formal address, premium-emoji-only, typography, glossary) live in
+[docs/features/_ux-guide.md](features/_ux-guide.md); the MVP flows in
+[docs/features/mvp-search-and-listen.md](features/mvp-search-and-listen.md).
+
 - One message per interaction; update it in place instead of spamming new ones.
 - No ads, no forced channel subscriptions, no walls of text.
 - Every action gives feedback within ~1s (chat action / "Downloading…" state).

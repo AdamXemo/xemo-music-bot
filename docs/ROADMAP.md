@@ -32,7 +32,7 @@ Goal: friends can search SoundCloud and receive tracks as audio messages.
 UX is the priority of this phase: the bot must feel polished and calm, in English, Ukrainian
 and Russian. Keep everything else as simple as it can be.
 
-- [ ] UX interview: `ux-designer` asks the owner how users interact with the bot, then
+- [x] UX interview: `ux-designer` asks the owner how users interact with the bot, then
       writes the MVP spec in `docs/features/` (onboarding, language, search, results,
       delivery, errors): English mockups plus copy in all three languages
 - [x] Agent team: create `db-architect` and `qa-reviewer` via `agent-engineer`
@@ -50,6 +50,8 @@ and Russian. Keep everything else as simple as it can be.
 - [ ] Provider interface (`MusicProvider`) + SoundCloud provider: search
 - [ ] Redis: client from config, aiogram `RedisStorage`, search session cache
       (results stored under a short id with TTL)
+- [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
+      and friends' devices; decides whether cards replace track buttons later
 - [ ] Search UX: text message → one results message, inline buttons, pagination by edit
 - [ ] Provider download: `MusicProvider.download()` via yt-dlp in `asyncio.to_thread`
       behind a semaphore, temp dir always cleaned up, max-duration guard (50 MB upload cap)
@@ -99,6 +101,8 @@ Goal: a Spotify-like player opened from inside Telegram.
 
 ## Ideas backlog (unsorted, not committed)
 
+- Caption on delivered audio linking to the bot, so friends who receive a forwarded track
+  can find it
 - Shared friend playlists / "what friends are listening to"
 - Official SoundCloud OAuth (requires Artist Pro - see ADR 0002)
 - Lyrics, Last.fm scrobbling, recommendations
