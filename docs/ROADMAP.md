@@ -18,7 +18,7 @@ Goal: an empty but production-shaped repo. No features yet.
 - [x] Coding agent: `python-engineer` implements roadmap items; main session orchestrates
 - [x] Project skeleton: `uv` project, `src/xemo_music_bot/` package, `config.py`, logging
 - [x] Tooling: ruff, mypy strict, pytest, pre-commit hooks
-- [ ] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
+- [x] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
       `.github/dependabot.yml` (uv + github-actions, weekly) to keep yt-dlp current
 - [ ] Branch protection on `main`: PR required, CI status check required, applies to admins
 - [ ] Bot hello-world: `/start` replies, bot runs locally via long polling
