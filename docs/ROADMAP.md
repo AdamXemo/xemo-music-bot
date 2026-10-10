@@ -99,6 +99,8 @@ Goal: a Spotify-like player opened from inside Telegram.
 
 ## Ideas backlog (unsorted, not committed)
 
+- Caption on delivered audio linking to the bot, so friends who receive a forwarded track
+  can find it
 - Shared friend playlists / "what friends are listening to"
 - Official SoundCloud OAuth (requires Artist Pro - see ADR 0002)
 - Lyrics, Last.fm scrobbling, recommendations

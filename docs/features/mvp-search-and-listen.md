@@ -100,8 +100,9 @@ message to `language_set` (no keyboard), written in the new language.
 └──────────────────────────────────────────────┘
 ```
 
-Each line is `{index}. Artist - Title · duration`, cut at a word boundary with `…` so the
-`Artist - Title` part is at most 90 characters; the duration is never cut.
+Each line is `{index}. Artist - Title · duration`, built from the same cleaned performer
+and title as the audio (see "Clean metadata" below), cut at a word boundary with `…` so
+the `Artist - Title` part is at most 90 characters; the duration is never cut.
 
 ### 6. Delivery
 
@@ -111,8 +112,9 @@ Each line is `{index}. Artist - Title · duration`, cut at a word boundary with 
 3. **Not cached:** the tapped button is edited into a disabled loading button
    (`[e:loading]` icon, text `…`). `upload_document` chat action repeats every 4 s until
    the audio is sent. Other numbers stay tappable; several tracks may load at once.
-4. The audio arrives as a new message with no caption and no buttons (title, artist,
-   duration and cover come from audio metadata). The number button is restored.
+4. The audio arrives as a new message: Telegram's native audio player with the cover as
+   the round thumbnail under the play button, the performer and title in bold, and the
+   duration and file size below. No caption, no buttons. The number button is restored.
 5. The results message stays as it is, so more tracks can be picked.
 
 ```
@@ -121,7 +123,33 @@ Each line is `{index}. Artist - Title · duration`, cut at a word boundary with 
 │ [ 1 ] ( [e:loading] … ) [ 3 ] [ 4 ] [ 5 ]    │
 │ ( ‹ Back ) ( 1 / 4 ) [ Next › ]              │
 └──────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────┐
+│  ╭─────╮                                     │
+│  │cover│  <b>Daft Punk - Instant Crush</b>   │
+│  │ (>) │  5:37 · 5.2 MB                      │
+│  ╰─────╯                                     │
+└──────────────────────────────────────────────┘
 ```
+
+Telegram draws the bold line from `performer` and `title` with its own separator, and
+adds the file size itself.
+
+**Cover (required).** Every audio has a cover. Order: the track's artwork, else the
+uploader's avatar, else the bot's default cover (a static image in the repo).
+
+**Clean metadata.** Performer and title are cleaned once, and the same values are used
+in the results list, the audio and the `tracks` cache:
+
+- If the title has the form `X - Y` (the separator may also be an en dash or em dash,
+  U+2013 or U+2014, with spaces around it), `X` becomes the performer
+  and `Y` the title; the uploader name is dropped.
+- Otherwise the performer is the uploader name and the title is used as is.
+- Junk is removed from the end of the title, case-insensitive, in `()` or `[]` or after
+  `|`: official audio, official video, official music video, lyrics, lyric video,
+  audio, free download, free dl, out now. Remix, feat., live, edit, version, cover and
+  similar stay.
+- Whitespace is collapsed. If cleaning would leave an empty title, the raw title is used.
 
 ## UX decisions
 
@@ -135,7 +163,13 @@ Each line is `{index}. Artist - Title · duration`, cut at a word boundary with 
 | Too-long tracks | Shown normally; a tap shows a short alert | Owner, 2026-10-10 |
 | Results header | Only the query, in bold; no "Results for" | Assumed default |
 | Welcome text | One line | Assumed default |
-| Audio message | No caption, no buttons | Assumed default |
+| Audio message | Native player: cover thumbnail, bold performer and title, duration (file size shown by Telegram) | Owner, 2026-10-10 |
+| Cover | Required on every audio; fallback chain ends in a default cover | Owner, 2026-10-10 |
+| Caption and buttons on audio | None | Owner, 2026-10-10 |
+| Clean performer and title | No duplicated artist in the title | Owner, 2026-10-10 |
+| Cover fallback order | Track artwork, uploader avatar, default cover | Assumed default |
+| Default cover design | Owner provides the image; until then a plain dark square with the bot's name | Assumed default |
+| Title splitting and junk list | Rules under "Clean metadata" | Assumed default |
 | Pager | `‹ Back` · disabled counter · `Next ›`; disabled arrows at the ends | Assumed default |
 | Search trigger | Any plain text message (not a command) | Assumed default |
 | Commands | `/start`, `/help`, `/language`; admins also see `/invite`, `/revoke`, `/ban` | Assumed default |
@@ -204,6 +238,8 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
   and `too_large` is sent as a new message.
 - **Download failure or timeout** (assumed 3 min): the button is restored, and
   `download_failed` is sent as a new message. Tapping the number again retries.
+- **No artwork, or the cover fails to download or convert:** fall through to the
+  uploader avatar, then the default cover. The user sees no difference in flow.
 - **Slow download:** the loading button stays, and the chat action keeps repeating. No
   extra messages.
 - **Cached track:** instant send, no loading button, no chat action.
@@ -242,9 +278,23 @@ No string in this spec needs plural forms. `{query}` and `{track}` are HTML-esca
   language. For admins the chat scope includes the admin commands. Bot description and
   short description are set per language at startup.
 - Language detection: any `language_code` starting with `uk` or `ru` maps to it; else `en`.
+- `sendAudio` on a cache miss: `performer` and `title` (cleaned), `duration` in seconds,
+  `thumbnail`, no `caption`, no `reply_markup`. Bot API (checked 2026-10-10): the
+  thumbnail must be JPEG, under 200 kB, width and height at most 320; it is only used when
+  the audio itself is uploaded as multipart, and it can't be reused by `file_id`, so it is
+  uploaded with the audio each time. Convert the chosen cover to a centre-cropped square
+  JPEG, at most 320x320, re-encoding at lower quality until it is under 200 kB. Audio is
+  at most 50 MB.
+- Cache hit: send by `file_id` only. Telegram keeps the thumbnail, performer, title and
+  duration from the first upload, so the cached audio looks identical.
+- If no cover can be fetched or converted, use the default cover; never send without one.
+- Store the cleaned performer and title in `tracks` (`artist`, `title`), so the cached
+  and the results-list forms always match.
 
 ## Out of scope
 
 - Admin replies for `/invite`, `/revoke`, `/ban` (short spec with the invite PR).
 - Rich messages, inline mode, favourites, history, YouTube.
 - Reactions: in private chats they would be regular emoji, which the guide forbids.
+- Later idea: a caption on delivered audio with a link to the bot, so friends who
+  receive a forwarded track can find it. Not wanted for now (Owner, 2026-10-10).
