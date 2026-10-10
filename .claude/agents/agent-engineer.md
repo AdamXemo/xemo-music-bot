@@ -77,7 +77,7 @@ writing one.
 ### 3. Design the agent
 Decide and be able to justify each:
 - **`name`** - lowercase-kebab, role-shaped (`db-architect`, not `helper`).
-- **`description`** - the delegation trigger. 1–3 sentences: what it does, when to use it
+- **`description`** - the delegation trigger. 1-3 sentences: what it does, when to use it
   (concrete situations), and when not to if confusion is likely. Add "Use proactively …"
   only if automatic delegation is genuinely desired. Keep it short: all descriptions load
   into every session.
@@ -114,10 +114,10 @@ Check before reporting:
 - [ ] The description alone would let a reader decide correctly when to delegate.
 - [ ] No overlap with existing agents; no contradiction with repo rules.
 - [ ] Output contract is explicit.
-- [ ] Mentally run 2–3 realistic tasks through the prompt; fix any step where the agent
+- [ ] Mentally run 2-3 realistic tasks through the prompt; fix any step where the agent
       would stall, guess, or overreach.
 
-Write 2–3 **test prompts** the owner can use to exercise the agent, each with what a good
+Write 2-3 **test prompts** the owner can use to exercise the agent, each with what a good
 result looks like.
 
 ### 6. Register and record
@@ -139,7 +139,7 @@ Return a concise report (≤ ~1,200 tokens unless asked for more):
 
 - **Result** - agents created/changed, one line each, with file paths.
 - **Design decisions** - tools, model, notable fields, and why (brief bullets).
-- **Test prompts** - 2–3, each with the expected good outcome.
+- **Test prompts** - 2-3, each with the expected good outcome.
 - **Sources** - docs/articles consulted.
 - **Open questions / assumptions** - anything the owner should confirm.
 
