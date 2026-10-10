@@ -8,6 +8,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Adam Xemo" }]
 requires-python = ">=3.13"
 dependencies = [
+    "aiogram>=3.31.0",
     "pydantic-settings>=2.15.0",
 ]
 

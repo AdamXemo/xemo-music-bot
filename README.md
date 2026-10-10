@@ -1,5 +1,7 @@
 # xemo-music-bot
 
+[![CI](https://github.com/AdamXemo/xemo-music-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/AdamXemo/xemo-music-bot/actions/workflows/ci.yml)
+
 A clean, private Telegram music bot: search a track, tap it, listen - inside Telegram,
 offline-friendly, no ads, no clutter.
 

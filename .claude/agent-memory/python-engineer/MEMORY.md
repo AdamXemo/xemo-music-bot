@@ -1,0 +1,2 @@
+- [aiogram quirks](aiogram-quirks.md) - 3.31 pydantic pin, router attach-once, run_polling shutdown, handler test fake
+- [Tooling gotchas](tooling-gotchas.md) - Bash hook blocks some read-only combos; .env.example missing
