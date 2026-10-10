@@ -21,6 +21,9 @@ every PR personally. A Telegram Mini App (web player) is planned for a later pha
 | Spec of a feature before building | [docs/features/](docs/features/)           |
 | Commits, branches, PRs, style     | [CONTRIBUTING.md](CONTRIBUTING.md)         |
 
+**Priorities:** UX first (polished, calm, EN/UK/RU), then simplicity. Prefer the simplest
+solution that keeps the UX excellent; don't build infrastructure ahead of need.
+
 Read `ROADMAP.md` and `ARCHITECTURE.md` before starting any non-trivial task.
 Accepted ADRs are the single source of truth for settled decisions: follow them, and
 raise a question instead of working against one. A decision that isn't in an ADR isn't settled.
@@ -66,7 +69,8 @@ All four checks (format, lint, mypy, pytest) must pass before you call a task do
 - `bot/` (Telegram layer) → `core/` (services) → `providers/`, `db/`. Never the other way.
 - `core/` must not import `aiogram`. It will be reused by the future Mini App backend.
 - Handlers are thin: parse input → call one service → render via keyboards/texts.
-- All user-facing strings live in `bot/texts.py`. No string literals in handlers.
+- All user-facing strings live in `bot/locales/` (en, uk, ru; ADR 0005). No string
+  literals in handlers.
 - `yt-dlp` is synchronous - always run it via `asyncio.to_thread` behind a concurrency
   limit. Never block the event loop.
 - Every DB access goes through a repository in `db/repositories/`.
@@ -97,7 +101,7 @@ role names. Trivial fixes (a typo, a one-line doc change) the main session may d
 | `agent-engineer`  | Designs, audits and improves the other agents           | ✅ ready |
 | `plan-reviewer`   | Critiques ROADMAP / ARCHITECTURE / ADRs, proposes fixes | ✅ ready |
 | `python-engineer` | Implements one roadmap item: code, tests, PR text       | ✅ ready |
-| `ux-designer`     | Message flows, keyboards, copy in `texts.py`, Mini App UI | 💤 Phase 1 |
+| `ux-designer`     | Interviews owner; specs flows, keyboards, EN/UK/RU copy | ✅ ready |
 | `db-architect`    | Designs and reviews schema, migrations, indexes, queries | 💤 Phase 1 |
 | `qa-reviewer`     | Reviews diffs for bugs, missing tests, rule violations  | 💤 Phase 1 |
 | `brainstormer`    | Feature ideas tailored to the friend group → backlog    | 💤 later |

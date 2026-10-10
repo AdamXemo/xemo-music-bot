@@ -17,6 +17,8 @@ Versioning: [SemVer](https://semver.org/).
   asyncio and coverage, pre-commit hooks; first tests for settings.
 - `python-engineer` subagent for implementing roadmap items; the main session becomes
   the orchestrator that delegates and owns git and PRs.
+- `ux-designer` subagent with an interview-first workflow.
+- ADR 0005 (proposed): English, Ukrainian and Russian via typed in-code catalogs.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
