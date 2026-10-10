@@ -21,7 +21,7 @@ Goal: an empty but production-shaped repo. No features yet.
 - [x] CI: GitHub Actions running format check, lint, mypy, tests on every PR;
       `.github/dependabot.yml` (uv + github-actions, weekly) to keep yt-dlp current
 - [ ] Branch protection on `main`: PR required, CI status check required, applies to admins
-- [ ] Bot hello-world: `/start` replies, bot runs locally via long polling
+- [x] Bot hello-world: `/start` replies, bot runs locally via long polling
 - [ ] Docker: `Dockerfile` (with ffmpeg) + `docker-compose.yml` (bot, postgres, redis);
       proves `docker compose up` runs the hello-world bot
 
@@ -39,9 +39,9 @@ and Russian. Keep everything else as simple as it can be.
 - [ ] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
       migration (incl. `invited_by`), Postgres service container in CI
 - [ ] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
-- [ ] i18n: `bot/locales/` (en, uk, ru) per ADR 0005, `users.language`, language picked
-      on first `/start` (preselected from Telegram), `/language` to switch, localized
-      command menu
+- [ ] i18n: `users.language`, language picked on first `/start` (preselected from
+      Telegram), `/language` to switch, localized command menu. The `bot/locales/`
+      catalogs (en, uk, ru) per ADR 0005 already landed with the hello-world bot
 - [ ] Access control: allowlist middleware, admin role from config, "private bot" reply
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
       a code, `/start <code>` deep link onboards
