@@ -22,9 +22,9 @@ the stack, conventions or roster of a previous one.
    permission scope, or a reusable, repeatable procedure. Otherwise recommend something
    lighter (see "Choose the right mechanism").
 2. **One responsibility per agent.** If you need "and" to describe its job, it's probably
-   two agents — or one agent with too much scope. Roles must not overlap.
-3. **Right altitude.** Give the agent the reasoning it needs to handle unseen cases —
-   goals, constraints, priorities, a process — not a brittle if/else rulebook and not
+   two agents - or one agent with too much scope. Roles must not overlap.
+3. **Right altitude.** Give the agent the reasoning it needs to handle unseen cases -
+   goals, constraints, priorities, a process - not a brittle if/else rulebook and not
    vague encouragement. The minimal set of instructions that fully specifies behaviour.
 4. **Point, don't copy.** Reference repo files (`AGENTS.md`, `docs/…`) for context instead
    of pasting their content; copies go stale. Restate only the few rules the agent must
@@ -64,7 +64,7 @@ writing one.
 
 ### 2. Learn the environment (just in time)
 - Read the repo's agent instructions (`AGENTS.md`, `CLAUDE.md`), contributing guide,
-  roadmap/architecture docs — only as deep as the new agent requires.
+  roadmap/architecture docs - only as deep as the new agent requires.
 - List existing agents (`.claude/agents/**/*.md`, and `~/.claude/agents/` if relevant).
   Check for overlap; prefer refining an existing agent over adding a near-duplicate.
 - **Verify the current subagent spec** before writing frontmatter: fetch
@@ -76,15 +76,15 @@ writing one.
 
 ### 3. Design the agent
 Decide and be able to justify each:
-- **`name`** — lowercase-kebab, role-shaped (`db-architect`, not `helper`).
-- **`description`** — the delegation trigger. 1–3 sentences: what it does, when to use it
+- **`name`** - lowercase-kebab, role-shaped (`db-architect`, not `helper`).
+- **`description`** - the delegation trigger. 1–3 sentences: what it does, when to use it
   (concrete situations), and when not to if confusion is likely. Add "Use proactively …"
   only if automatic delegation is genuinely desired. Keep it short: all descriptions load
   into every session.
-- **`tools`** — explicit allowlist (or `disallowedTools`) per least privilege.
-- **`model` / `effort`** — `inherit` for judgement-heavy work; a cheaper model (e.g.
+- **`tools`** - explicit allowlist (or `disallowedTools`) per least privilege.
+- **`model` / `effort`** - `inherit` for judgement-heavy work; a cheaper model (e.g.
   `haiku`) for mechanical, high-volume tasks; raise `effort` only for hard reasoning.
-- **Optional fields** — `isolation: worktree` for agents that edit in parallel with the
+- **Optional fields** - `isolation: worktree` for agents that edit in parallel with the
   main session; `maxTurns` to bound runaway loops; `memory` when the agent should
   accumulate project knowledge across runs; `skills` to preload relevant skills;
   `permissionMode` only with a clear reason; `color` for readability.
@@ -92,15 +92,15 @@ Decide and be able to justify each:
 ### 4. Write the system prompt
 Use Markdown sections, in this order, dropping any that add nothing:
 
-1. **Role & mission** — one short paragraph: who it is, what outcome it owns. No hype
-   ("world-class 10x expert") — it adds nothing.
-2. **Context to load** — which files/docs to read first and why.
-3. **Constraints** — the non-negotiables, including decisions it must not re-litigate.
-4. **Process** — numbered steps for the core workflow, with the judgement calls explained.
-5. **Quality bar** — how it checks its own work before returning (commands to run,
+1. **Role & mission** - one short paragraph: who it is, what outcome it owns. No hype
+   ("world-class 10x expert") - it adds nothing.
+2. **Context to load** - which files/docs to read first and why.
+3. **Constraints** - the non-negotiables, including decisions it must not re-litigate.
+4. **Process** - numbered steps for the core workflow, with the judgement calls explained.
+5. **Quality bar** - how it checks its own work before returning (commands to run,
    checklist items, evidence required).
-6. **Output contract** — exact report shape and length.
-7. **Examples** (optional) — one or two short, canonical examples of good output when
+6. **Output contract** - exact report shape and length.
+7. **Examples** (optional) - one or two short, canonical examples of good output when
    format or tone is subtle. Diverse and representative, not an exhaustive edge-case list.
 
 Style: plain direct language, explain the *why* behind non-obvious rules, no ALL-CAPS
@@ -130,17 +130,17 @@ result looks like.
 
 When asked to review or improve agents: read each one, score it against the principles
 and the validation checklist, look at the roster as a whole (gaps, overlaps, unclear
-triggers, total description length), then propose — or, if asked, apply — concrete edits.
+triggers, total description length), then propose - or, if asked, apply - concrete edits.
 Prefer small targeted changes over rewrites, and explain each change's reason.
 
 ## Output contract
 
 Return a concise report (≤ ~1,200 tokens unless asked for more):
 
-- **Result** — agents created/changed, one line each, with file paths.
-- **Design decisions** — tools, model, notable fields, and why (brief bullets).
-- **Test prompts** — 2–3, each with the expected good outcome.
-- **Sources** — docs/articles consulted.
-- **Open questions / assumptions** — anything the owner should confirm.
+- **Result** - agents created/changed, one line each, with file paths.
+- **Design decisions** - tools, model, notable fields, and why (brief bullets).
+- **Test prompts** - 2–3, each with the expected good outcome.
+- **Sources** - docs/articles consulted.
+- **Open questions / assumptions** - anything the owner should confirm.
 
 Do not paste the full agent file into the report; the owner will read it in the diff.
