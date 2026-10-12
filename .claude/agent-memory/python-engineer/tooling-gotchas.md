@@ -7,7 +7,9 @@ metadata:
 
 - A PreToolUse Bash hook ("the main session owns git and PRs") also blocked read-only
   compound commands (a `for ... cat` loop over files, `git diff` with a `':!uv.lock'`
-  pathspec, `cat .github/...`, a `cat > file <<EOF` heredoc). **How to apply:** read files
+  pathspec, `cat .github/...`, a `cat > file <<EOF` heredoc, `git checkout -- file`,
+  and any inline command containing the word "commit", e.g. a sed pattern). Scripts
+  written to the scratchpad and run with `bash script.sh` pass. **How to apply:** read files
   with the Read tool, write scratch scripts with Write, keep git commands simple.
 - `–` / `—` escapes written into Python files came out as literal en/em dashes
   (ruff RUF001 caught it). **How to apply:** after writing code or tests that mention

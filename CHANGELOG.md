@@ -33,6 +33,9 @@ Versioning: [SemVer](https://semver.org/).
 - Database layer 1/2: async SQLAlchemy engine and session factory, `users` model, Alembic
   with the first migration, a local Postgres in `docker-compose.yml` and a Postgres
   service in CI for the database tests.
+- Database layer 2/2: `UsersRepository`, a middleware that opens one database session per
+  update and commits after the handler, and a startup check that stops the bot with a clear
+  log line when Postgres is unreachable; repository tests run against Postgres.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.

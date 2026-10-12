@@ -50,6 +50,11 @@ and Russian. Keep everything else as simple as it can be.
       hello-world bot
 - [ ] i18n 2/2: localized command menu per language, admin chat-scope commands, bot
       description and short description per language at startup
+- [x] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
+- [ ] i18n: `users.language`, language picked on first `/start` (preselected from
+      Telegram), `/language` to switch, localized command menu. The `bot/locales/`
+      catalogs (en, uk, ru) per ADR 0005 already landed with the hello-world bot
+- [ ] Access control: allowlist middleware, admin role from config, "private bot" reply
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
       a code; `/start <code>` creates the user with `language` from Telegram and welcomes
       them; short spec for admin replies first
