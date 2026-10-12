@@ -80,7 +80,7 @@ after the handler; `AccessMiddleware` runs after it.
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`admin` / `user` / `blocked`, text + CHECK), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with the i18n item |
+| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK; `admin` is in the CHECK until the Access control item drops it, admin rights come from config), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with the i18n item |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 

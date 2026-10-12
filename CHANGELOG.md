@@ -42,3 +42,7 @@ Versioning: [SemVer](https://semver.org/).
 - Roadmap reworked after plan review: branch protection after CI, Redis before search UX,
   DB layer and delivery split into reviewable PRs, revocation, Dependabot and smoke tests.
 - ADRs 0001-0004 accepted; ADR 0002 records search-by-name-only and the Deno need for YouTube.
+- Phase 1 reordered: access control (config admins get a row on their first update),
+  then i18n in two PRs, then invite codes and revocation. Admin rights come from config
+  only and config admins cannot be banned (ADR 0003 clarified); ADR 0005 sets the language
+  on joining. Redis item drops aiogram `RedisStorage` (no FSM in the MVP spec).
