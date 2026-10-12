@@ -35,6 +35,7 @@ src/xemo_music_bot/
 │   ├── handlers/        # one router per feature: start, search, library, admin
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
 │   ├── middlewares/     # access control, DB session, throttling
+│   │   └── db_session.py  # DbSessionMiddleware: one session per update, commit after handler
 │   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005)
 ├── core/
 │   ├── models.py        # domain dataclasses: Track, Playlist, Profile
@@ -46,8 +47,9 @@ src/xemo_music_bot/
 │   └── youtube.py
 └── db/
     ├── models.py        # SQLAlchemy ORM models
-    ├── session.py       # engine + session factory
+    ├── session.py       # engine + session factory, startup connection check
     └── repositories/    # one per aggregate: users, invites, tracks
+        └── users.py     # UsersRepository
 migrations/              # Alembic
 tests/                   # mirrors src/ layout
 ```
@@ -71,6 +73,8 @@ tests/                   # mirrors src/ layout
 ### Access
 `AccessMiddleware` runs before every handler: unknown users get a short "private bot"
 message; `/start <invite_code>` is the only path in. Admins are set in config.
+`DbSessionMiddleware` (outer, on update) opens one session per update and commits
+after the handler; `AccessMiddleware` runs after it.
 
 ## Data model (MVP)
 

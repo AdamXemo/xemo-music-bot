@@ -25,8 +25,11 @@ Requires [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 for you).
 ```bash
 uv sync                          # create .venv and install dependencies
 uv run pre-commit install        # run format, lint and type checks on every commit
+# start and migrate Postgres first (see Database below)
 uv run python -m xemo_music_bot  # run
 ```
+
+The bot needs a running, migrated Postgres; if it cannot connect, it logs why and exits.
 
 Settings come from environment variables or a local `.env` file (gitignored, never
 committed):
@@ -51,7 +54,7 @@ uv run alembic revision --autogenerate --rev-id 000N -m "add something"  # new m
 Port 5432 already taken? Set `DB_PORT` and a `DATABASE_URL` with the same port in `.env`
 (compose reads it too), and use that port in `TEST_DATABASE_URL` below.
 
-Tests in `tests/db/` are skipped unless `TEST_DATABASE_URL` points to a separate,
+Database tests are skipped unless `TEST_DATABASE_URL` points to a separate,
 disposable database (they drop tables, so never use the development one):
 
 ```bash

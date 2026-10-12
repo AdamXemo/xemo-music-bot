@@ -78,8 +78,8 @@ strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
 files = ["src", "tests", "migrations"]
-# Name modules by path (tests.db.conftest) so the conftest.py files in tests/ and
-# tests/db/ do not clash; src is the base for the package itself.
+# Name modules by path (tests.db.test_session) so same-named files in different test
+# folders do not clash; src is the base for the package itself.
 mypy_path = "src"
 explicit_package_bases = true
 
