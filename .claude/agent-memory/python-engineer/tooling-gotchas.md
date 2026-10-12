@@ -29,7 +29,10 @@ metadata:
 - Helpers in `tests/bot/conftest.py` cannot be imported by tests (several conftest modules);
   expose them as fixtures instead (`sent_requests`, `session_factory`, `bot`).
 - Budget: tests run about 2x production lines here (DB + dispatcher tests, parametrize).
-  Estimate tests explicitly before starting; Access control came to ~710 lines vs 420.
+  Estimate tests explicitly before starting; Access control came to ~710 lines vs 420;
+  i18n 1/2a came to ~415 vs a 310 estimate (signature change touched ~20 test call sites).
+- The hook also blocked a `python3 -c` multi-line file rewrite and a chained
+  `git status && git diff --stat && grep ...`; use Edit, and run git commands on their own.
 - The Bash hook also blocked a `python3 - <<'X'` heredoc and a `for f in ...; cat -n` loop;
   a scratchpad `show.sh` taking file args works for reading many files.
 - `ruff check --fix` (SIM905) rewrites `"a b c".split()` into a list literal, which

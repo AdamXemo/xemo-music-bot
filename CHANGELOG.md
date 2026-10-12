@@ -40,6 +40,9 @@ Versioning: [SemVer](https://semver.org/).
   strangers and blocked users get a "private bot" line on `/start` and are otherwise
   ignored; a config admin's `users` row is created on their first update. Migration 0002
   drops `admin` from the `users.role` CHECK, since admin rights come only from config.
+- i18n 1/2: each user's language is stored in `users.language` (migration 0003; existing
+  rows get English), taken from Telegram's language when the row is created; handlers get
+  the user's catalog from the access middleware, so `/start` greets in the stored language.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.

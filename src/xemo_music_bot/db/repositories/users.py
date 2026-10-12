@@ -1,8 +1,10 @@
 """Reads and writes rows of the ``users`` table."""
 
+from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from xemo_music_bot.core.models import Language
 from xemo_music_bot.db.models import User
 
 
@@ -21,7 +23,11 @@ class UsersRepository:
         return await self._session.get(User, tg_id)
 
     async def create(
-        self, tg_id: int, username: str | None, invited_by: int | None = None
+        self,
+        tg_id: int,
+        username: str | None,
+        language: Language,
+        invited_by: int | None = None,
     ) -> User | None:
         """Insert a user unless one with this Telegram ID already exists.
 
@@ -32,6 +38,7 @@ class UsersRepository:
         Args:
             tg_id: Telegram user ID.
             username: Telegram username without the leading "@", if the user has one.
+            language: The language the bot speaks to the user.
             invited_by: Telegram ID of the inviting user, who must already exist.
 
         Returns:
@@ -43,7 +50,7 @@ class UsersRepository:
         """
         statement = (
             insert(User)
-            .values(tg_id=tg_id, username=username, invited_by=invited_by)
+            .values(tg_id=tg_id, username=username, language=language, invited_by=invited_by)
             # Skip only a duplicate tg_id. Naming the target keeps any future unique
             # constraint loud; FK and CHECK violations always raise.
             .on_conflict_do_nothing(index_elements=[User.tg_id])
@@ -51,3 +58,21 @@ class UsersRepository:
             .returning(User)
         )
         return await self._session.scalar(statement)
+
+    async def set_language(self, tg_id: int, language: Language) -> User | None:
+        """Change the user's language in one atomic UPDATE.
+
+        The ORM also applies the new value to the user's object if this session already
+        holds it, so a ``db_user`` loaded earlier in the same update stays current.
+
+        Args:
+            tg_id: Telegram user ID.
+            language: The new language.
+
+        Returns:
+            The updated user, or ``None`` if no user has this Telegram ID.
+        """
+        statement = (
+            update(User).where(User.tg_id == tg_id).values(language=language).returning(User)
+        )
+        return (await self._session.scalars(statement)).one_or_none()

@@ -25,6 +25,9 @@ Verified on aiogram 3.31.0 (Bot API 10.3), 2026-10-10:
   middleware blocked an update - no router may match it anyway. Deny-by-default tests call the
   middleware directly with a handler that records calls, across message / edited_message /
   callback_query, and are checked against a temporary leaky mutation.
+- Review feedback (2026-10-12, i18n 1/2a): seed EVERY row's stored language different from the
+  Telegram language the tests send (blocked rows too), so each test shows which one a reply used;
+  CHANGELOG lines name the roadmap item ("i18n 1/2"), never PR-split jargon like "1/2a".
 - `str.split()` on whitespace-only text (e.g. chr(160)) returns `[]`; guard before `[0]`.
 - Handler tests: `dispatcher.feed_update(bot, Update(...))` with a `BaseSession` subclass
   that records `make_request` calls (see `tests/bot/handlers/test_start.py`). Ruff flags the

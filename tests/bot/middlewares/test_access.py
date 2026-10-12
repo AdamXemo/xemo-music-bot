@@ -27,9 +27,14 @@ GROUP_ID = -100
 @pytest.fixture
 async def seeded(session: AsyncSession) -> None:
     await session.execute(
-        # A multi-row VALUES takes its columns from the first row, so both name the role.
+        # A multi-row VALUES takes its columns from the first row, so every row names
+        # the same columns. The stored languages deliberately differ from the Telegram
+        # languages the tests send, so a test shows which of the two a reply used.
         insert(DbUser).values(
-            [{"tg_id": MEMBER_ID, "role": "user"}, {"tg_id": BLOCKED_ID, "role": "blocked"}]
+            [
+                {"tg_id": MEMBER_ID, "role": "user", "language": "uk"},
+                {"tg_id": BLOCKED_ID, "role": "blocked", "language": "ru"},
+            ]
         )
     )
 
@@ -102,14 +107,14 @@ async def test_blocked_user_start_gets_private_bot_line(
     assert request.text == EN.private_bot
 
 
-async def test_member_start_reaches_the_handler(
+async def test_member_start_is_greeted_in_the_stored_language(
     bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
 ) -> None:
-    await dispatcher.feed_update(bot, make_update("/start", MEMBER_ID))
+    await dispatcher.feed_update(bot, make_update("/start", MEMBER_ID, language_code="ru"))
 
     [request] = sent_requests
     assert isinstance(request, SendMessage)
-    assert request.text == EN.greeting
+    assert request.text == UK.greeting
 
 
 async def test_config_admin_first_start_creates_row_and_reaches_the_handler(
@@ -149,13 +154,27 @@ async def test_update_without_sender_is_ignored_without_a_query(
     assert sent_requests == []
 
 
-@pytest.mark.parametrize(("user_id", "is_admin"), [(MEMBER_ID, False), (ADMIN_ID, True)])
-async def test_allowed_sender_reaches_handler_with_row_and_admin_flag(
-    seeded: None, session: AsyncSession, user_id: int, is_admin: bool
+@pytest.mark.parametrize(
+    ("user_id", "is_admin", "stored", "texts"),
+    [
+        # The member's stored 'uk' wins over Telegram's 'ru-RU'.
+        pytest.param(MEMBER_ID, False, "uk", UK, id="member-stored-language"),
+        # The admin has no row yet, so it is created with Telegram's language.
+        pytest.param(ADMIN_ID, True, "ru", RU, id="admin-new-row-from-telegram"),
+    ],
+)
+async def test_allowed_sender_reaches_handler_with_row_admin_flag_and_texts(
+    seeded: None,
+    session: AsyncSession,
+    user_id: int,
+    is_admin: bool,
+    stored: str,
+    texts: Texts,
 ) -> None:
+    sender = User(id=user_id, is_bot=False, first_name="Friend", language_code="ru-RU")
     data: dict[str, Any] = {
         "session": session,
-        "event_from_user": User(id=user_id, is_bot=False, first_name="Friend"),
+        "event_from_user": sender,
         "event_chat": Chat(id=user_id, type="private"),
     }
 
@@ -168,6 +187,9 @@ async def test_allowed_sender_reaches_handler_with_row_and_admin_flag(
     assert result == "handled"
     assert data["db_user"].tg_id == user_id
     assert data["is_admin"] is is_admin
+    assert data["texts"] is texts
+    language = await session.scalar(select(DbUser.language).where(DbUser.tg_id == user_id))
+    assert language == stored
 
 
 @pytest.mark.parametrize("kind", ["message", "edited_message", "callback_query"])

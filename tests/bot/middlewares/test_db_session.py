@@ -24,7 +24,7 @@ async def test_commits_what_the_handler_wrote(
 ) -> None:
     async def handler(event: TelegramObject, data: dict[str, Any]) -> str:
         assert isinstance(data["session"], AsyncSession)
-        await UsersRepository(data["session"]).create(1, "friend")
+        await UsersRepository(data["session"]).create(1, "friend", "en")
         return "handled"
 
     result = await middleware(handler, Update(update_id=1), {})
@@ -37,7 +37,7 @@ async def test_rolls_back_and_reraises_when_the_handler_fails(
     middleware: DbSessionMiddleware, connection: AsyncConnection
 ) -> None:
     async def handler(event: TelegramObject, data: dict[str, Any]) -> None:
-        await UsersRepository(data["session"]).create(1, "friend")
+        await UsersRepository(data["session"]).create(1, "friend", "en")
         raise RuntimeError("boom")
 
     with pytest.raises(RuntimeError, match="boom"):
