@@ -36,6 +36,10 @@ Versioning: [SemVer](https://semver.org/).
 - Database layer 2/2: `UsersRepository`, a middleware that opens one database session per
   update and commits after the handler, and a startup check that stops the bot with a clear
   log line when Postgres is unreachable; repository tests run against Postgres.
+- Access control: only members and config admins reach the bot, in private chats only;
+  strangers and blocked users get a "private bot" line on `/start` and are otherwise
+  ignored; a config admin's `users` row is created on their first update. Migration 0002
+  drops `admin` from the `users.role` CHECK, since admin rights come only from config.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.

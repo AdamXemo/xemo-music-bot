@@ -1,0 +1,67 @@
+from collections.abc import AsyncGenerator
+from typing import Any, cast
+
+import pytest
+from aiogram import Bot
+from aiogram.client.session.base import BaseSession
+from aiogram.methods import TelegramMethod
+from aiogram.methods.base import TelegramType
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
+
+
+class RecordingSession(BaseSession):
+    """Records Bot API calls instead of sending them to Telegram."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.requests: list[TelegramMethod[Any]] = []
+
+    async def close(self) -> None:
+        pass
+
+    # The `timeout` parameters below mirror the abstract BaseSession signatures.
+    async def make_request(
+        self,
+        bot: Bot,
+        method: TelegramMethod[TelegramType],
+        timeout: int | None = None,  # noqa: ASYNC109 - fixed by BaseSession
+    ) -> TelegramType:
+        self.requests.append(method)
+        # Handlers here ignore the API response, so a typed stub value is not needed.
+        return cast("TelegramType", None)
+
+    async def stream_content(
+        self,
+        url: str,
+        headers: dict[str, Any] | None = None,
+        timeout: int = 30,  # noqa: ASYNC109 - fixed by BaseSession
+        chunk_size: int = 65536,
+        raise_for_status: bool = True,
+    ) -> AsyncGenerator[bytes]:
+        yield b""
+
+
+@pytest.fixture
+def api_session() -> RecordingSession:
+    return RecordingSession()
+
+
+@pytest.fixture
+def sent_requests(api_session: RecordingSession) -> list[TelegramMethod[Any]]:
+    """Bot API calls the bot made, in order; a fixture so tests need not import conftest."""
+    return api_session.requests
+
+
+@pytest.fixture
+def bot(api_session: RecordingSession) -> Bot:
+    # A dummy token in the `<id>:<secret>` shape that Bot validates; it never reaches Telegram.
+    return Bot(token="123456:TEST", session=api_session)  # noqa: S106
+
+
+@pytest.fixture
+def session_factory(connection: AsyncConnection) -> async_sessionmaker[AsyncSession]:
+    # Commits become savepoints on the test connection, so the test can see them and
+    # the connection fixture still rolls everything back.
+    return async_sessionmaker(
+        bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
+    )

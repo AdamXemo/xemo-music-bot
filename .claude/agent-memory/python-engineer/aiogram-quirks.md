@@ -21,6 +21,11 @@ Verified on aiogram 3.31.0 (Bot API 10.3), 2026-10-10:
 - Hooks/handlers go through `CallableObject`: `functools.partial(async_fn, engine)` is
   detected as awaitable and only declared params get workflow kwargs; a lambda would run
   in a thread and never await. Ruff D102 (not D105) flags a middleware `__call__`.
+- Review feedback (2026-10-12, qa-reviewer): "no SendMessage" via feed_update does NOT prove a
+  middleware blocked an update - no router may match it anyway. Deny-by-default tests call the
+  middleware directly with a handler that records calls, across message / edited_message /
+  callback_query, and are checked against a temporary leaky mutation.
+- `str.split()` on whitespace-only text (e.g. chr(160)) returns `[]`; guard before `[0]`.
 - Handler tests: `dispatcher.feed_update(bot, Update(...))` with a `BaseSession` subclass
   that records `make_request` calls (see `tests/bot/handlers/test_start.py`). Ruff flags the
   inherited `timeout` params (ASYNC109) and the dummy token (S106); those need commented noqa.

@@ -11,6 +11,8 @@ class Texts:
 
     Attributes:
         greeting: Reply to `/start`.
+        private_bot: Reply to `/start` from a stranger or a blocked user.
     """
 
     greeting: str
+    private_bot: str

@@ -21,5 +21,16 @@ metadata:
 - Owner wants table tests as a readable spec: one test per rule, `pytest.param(..., id=)`
   with `en:`/`ru:`/`uk:` prefixes, explicit known-limitation cases, failure message
   showing input / expected / actual.
+- RUF001 also flags the one-letter Russian preposition "у" in locale copy (verbatim spec
+  text): use a line `# noqa: RUF001` plus a why-comment WITHOUT Cyrillic (RUF003 checks comments).
+- pytest runs in default prepend import mode and tests have no `__init__.py`: test file
+  basenames must be unique across folders ("import file mismatch"), e.g.
+  `tests/core/services/test_access_service.py` next to `tests/bot/middlewares/test_access.py`.
+- Helpers in `tests/bot/conftest.py` cannot be imported by tests (several conftest modules);
+  expose them as fixtures instead (`sent_requests`, `session_factory`, `bot`).
+- Budget: tests run about 2x production lines here (DB + dispatcher tests, parametrize).
+  Estimate tests explicitly before starting; Access control came to ~710 lines vs 420.
+- The Bash hook also blocked a `python3 - <<'X'` heredoc and a `for f in ...; cat -n` loop;
+  a scratchpad `show.sh` taking file args works for reading many files.
 - `ruff check --fix` (SIM905) rewrites `"a b c".split()` into a list literal, which
   `ruff format` then explodes one item per line; just write the set/list directly.
