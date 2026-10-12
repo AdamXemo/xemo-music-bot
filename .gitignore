@@ -16,7 +16,6 @@ htmlcov/
 # Secrets & local config
 .env
 .env.*
-!.env.example
 cookies*.txt
 
 # Audio / downloads (never committed - see AGENTS.md)

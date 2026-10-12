@@ -76,11 +76,12 @@ message; `/start <invite_code>` is the only path in. Admins are set in config.
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` PK, `username`, `role` (`admin` / `user` / `blocked`), `language` (`en` / `uk` / `ru`), `invited_by`, `created_at` |
+| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`admin` / `user` / `blocked`, text + CHECK), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with the i18n item |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 
 Later phases add `linked_profiles`, `favorites`, `history`.
+Constraint names follow the `MetaData` naming convention in `db/models.py`.
 
 ## UX principles
 

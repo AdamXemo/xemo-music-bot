@@ -4,7 +4,7 @@ import pytest
 
 from xemo_music_bot.config import get_settings
 
-SETTINGS_ENV_VARS = ("BOT_TOKEN", "ADMIN_IDS", "LOG_LEVEL")
+SETTINGS_ENV_VARS = ("BOT_TOKEN", "ADMIN_IDS", "LOG_LEVEL", "DATABASE_URL")
 
 
 @pytest.fixture(autouse=True)

@@ -1,3 +1,4 @@
 - [aiogram quirks](aiogram-quirks.md) - 3.31 pydantic pin, router attach-once, run_polling shutdown, handler test fake
 - [Tooling gotchas](tooling-gotchas.md) - Bash hook blocks heredocs and some read-only combos; dash escapes turn literal; SIM905
+- [DB quirks](db-quirks.md) - host PG on 5432 (DB_PORT=55432), PG18 volume path, alembic check skips CHECKs, mypy conftest clash
 - [yt-dlp quirks](yt-dlp-quirks.md) - 2026.8.19 flat scsearch entry shape, HEAD per entry latency, Go+ 30 s previews, no py.typed
