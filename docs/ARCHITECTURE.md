@@ -72,7 +72,9 @@ tests/                   # mirrors src/ layout
 
 ### Access
 `AccessMiddleware` runs before every handler: unknown users get a short "private bot"
-message; `/start <invite_code>` is the only path in. Admins are set in config.
+message; `/start <invite_code>` is the only way in for friends. Admins come from config
+(`ADMIN_IDS`), the only source of admin rights, and their `users` row is created on their
+first update.
 `DbSessionMiddleware` (outer, on update) opens one session per update and commits
 after the handler; `AccessMiddleware` runs after it.
 
