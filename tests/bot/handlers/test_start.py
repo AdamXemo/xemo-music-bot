@@ -3,15 +3,17 @@ from datetime import UTC, datetime
 from typing import Any, cast
 
 import pytest
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
 from aiogram.client.session.base import BaseSession
 from aiogram.methods import SendMessage, TelegramMethod
 from aiogram.methods.base import TelegramType
 from aiogram.types import Chat, Message, Update, User
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.uk import UK
+from xemo_music_bot.db.session import create_session_factory
 
 CHAT_ID = 42
 
@@ -49,14 +51,21 @@ class RecordingSession(BaseSession):
 
 
 @pytest.fixture
-def session() -> RecordingSession:
+def api_session() -> RecordingSession:
     return RecordingSession()
 
 
 @pytest.fixture
-def bot(session: RecordingSession) -> Bot:
+def bot(api_session: RecordingSession) -> Bot:
     # A dummy token in the `<id>:<secret>` shape that Bot validates; it never reaches Telegram.
-    return Bot(token="123456:TEST", session=session)  # noqa: S106
+    return Bot(token="123456:TEST", session=api_session)  # noqa: S106
+
+
+@pytest.fixture
+def dispatcher(unreachable_engine: AsyncEngine) -> Dispatcher:
+    # The database session connects lazily, so handlers that never query work without
+    # Postgres; an unreachable database makes any unexpected query fail loudly.
+    return build_dispatcher(create_session_factory(unreachable_engine))
 
 
 def make_update(text: str, language_code: str | None) -> Update:
@@ -72,27 +81,29 @@ def make_update(text: str, language_code: str | None) -> Update:
 
 
 async def test_start_replies_with_greeting_in_user_language(
-    bot: Bot, session: RecordingSession
+    bot: Bot, api_session: RecordingSession, dispatcher: Dispatcher
 ) -> None:
-    await build_dispatcher().feed_update(bot, make_update("/start", "uk"))
+    await dispatcher.feed_update(bot, make_update("/start", "uk"))
 
-    [request] = session.requests
+    [request] = api_session.requests
     assert isinstance(request, SendMessage)
     assert request.chat_id == CHAT_ID
     assert request.text == UK.greeting
 
 
 async def test_start_falls_back_to_english_for_unsupported_language(
-    bot: Bot, session: RecordingSession
+    bot: Bot, api_session: RecordingSession, dispatcher: Dispatcher
 ) -> None:
-    await build_dispatcher().feed_update(bot, make_update("/start", "de"))
+    await dispatcher.feed_update(bot, make_update("/start", "de"))
 
-    [request] = session.requests
+    [request] = api_session.requests
     assert isinstance(request, SendMessage)
     assert request.text == EN.greeting
 
 
-async def test_other_text_is_not_answered_by_start(bot: Bot, session: RecordingSession) -> None:
-    await build_dispatcher().feed_update(bot, make_update("hello", "en"))
+async def test_other_text_is_not_answered_by_start(
+    bot: Bot, api_session: RecordingSession, dispatcher: Dispatcher
+) -> None:
+    await dispatcher.feed_update(bot, make_update("hello", "en"))
 
-    assert session.requests == []
+    assert api_session.requests == []

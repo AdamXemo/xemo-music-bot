@@ -38,7 +38,7 @@ and Russian. Keep everything else as simple as it can be.
 - [x] Agent team: create `db-architect` and `qa-reviewer` via `agent-engineer`
 - [x] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
       migration (incl. `invited_by`), Postgres service container in CI
-- [ ] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
+- [x] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
 - [ ] i18n: `users.language`, language picked on first `/start` (preselected from
       Telegram), `/language` to switch, localized command menu. The `bot/locales/`
       catalogs (en, uk, ru) per ADR 0005 already landed with the hello-world bot

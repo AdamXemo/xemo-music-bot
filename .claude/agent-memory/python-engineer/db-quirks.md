@@ -19,5 +19,13 @@ Verified 2026-10-12 (sqlalchemy 2.1.4, alembic 1.20.0, asyncpg 0.32.0, postgres:
 - A second `conftest.py` (tests/db/) makes mypy fail with "Duplicate module named conftest";
   fixed with `mypy_path = "src"` + `explicit_package_bases = true` (no `__init__.py` in tests).
   This also lets mypy check `migrations/versions/0001_*.py` despite the digit-leading name.
+- 2026-10-12: owner's compose db may run on 127.0.0.1:5433 with a `xemo_test` database;
+  use `TEST_DATABASE_URL=postgresql+asyncpg://xemo:xemo@127.0.0.1:5433/xemo_test`.
+- DB fixtures (`database_url`, `migrated_url`, `engine`, `connection`, `session`,
+  `unreachable_engine`) live in the ROOT tests/conftest.py so tests/bot/ can use them.
+- Unreachable asyncpg raises raw `OSError` (not wrapped); bad password raises
+  `sqlalchemy.exc.DBAPIError`. Neither message contains the URL or password.
+- `postgresql.insert(User)...on_conflict_do_nothing(...).returning(User)` via
+  `session.scalar` is mypy-clean and returns `User | None`.
 - `migrations/env.py` calls `get_settings()` only when no `sqlalchemy.url` is set; that needs
   BOT_TOKEN in env or `.env` for `alembic upgrade head`.

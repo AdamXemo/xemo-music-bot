@@ -4,6 +4,7 @@ Nothing here is a module-level global: the entrypoint builds one engine and one 
 factory at startup and passes them to whatever needs them.
 """
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -38,3 +39,18 @@ def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSessi
     # Objects stay readable after commit: refreshing expired attributes would need an
     # implicit lazy load, which raises under asyncio.
     return async_sessionmaker(engine, expire_on_commit=False)
+
+
+async def check_connection(engine: AsyncEngine) -> None:
+    """Connect and run ``SELECT 1`` to prove the database is reachable.
+
+    Args:
+        engine: The engine to check.
+
+    Raises:
+        OSError: Postgres is unreachable (refused, unknown host, timeout).
+        sqlalchemy.exc.SQLAlchemyError: Postgres rejected the connection, e.g. a wrong
+            password or a missing database.
+    """
+    async with engine.connect() as connection:
+        await connection.execute(text("SELECT 1"))
