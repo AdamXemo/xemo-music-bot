@@ -29,5 +29,12 @@ Verified 2026-10-12 (sqlalchemy 2.1.4, alembic 1.20.0, asyncpg 0.32.0, postgres:
   `session.scalar` is mypy-clean and returns `User | None`.
 - `insert(Model).values([{...}, {...}])` takes its columns from the FIRST dict and silently
   drops extra keys of later rows (a `role="blocked"` on row 2 was lost); give every row the same keys.
+- `update(User).where(...).values(...).returning(User)` via `session.scalars(...).one_or_none()`
+  (default synchronize_session) DOES update an object already in the identity map; verified
+  by mutation (`synchronize_session=False` makes the refresh test fail).
+- Render offline SQL without touching `.env`: run from the scratchpad with
+  `BOT_TOKEN=123456:TEST DATABASE_URL=<test url> uv run --project <repo> alembic -c <repo>/alembic.ini upgrade A:B --sql`.
+- Migration data tests: sync test + `asyncio.run` on a throwaway `create_db_engine` with raw
+  `text()` SQL (the ORM model is ahead of older revisions); finally-clean rows and upgrade head.
 - `migrations/env.py` calls `get_settings()` only when no `sqlalchemy.url` is set; that needs
   BOT_TOKEN in env or `.env` for `alembic upgrade head`.

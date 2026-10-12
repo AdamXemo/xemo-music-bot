@@ -1,5 +1,11 @@
+import asyncio
+from typing import Any
+
 from alembic import command
 from alembic.config import Config
+from sqlalchemy import text
+
+from xemo_music_bot.db.session import create_db_engine
 
 
 # Sync on purpose: migrations/env.py calls asyncio.run, which cannot nest in a running loop.
@@ -9,3 +15,36 @@ def test_migrations_match_models_and_round_trip(alembic_config: Config) -> None:
     command.check(alembic_config)
     command.downgrade(alembic_config, "base")
     command.upgrade(alembic_config, "head")
+
+
+def run_sql(url: str, statement: str) -> list[Any]:
+    """Run raw SQL in its own transaction; raw because the ORM model is ahead of 0002."""
+
+    async def execute() -> list[Any]:
+        engine = create_db_engine(url)
+        try:
+            async with engine.begin() as connection:
+                result = await connection.execute(text(statement))
+                return list(result.scalars()) if result.returns_rows else []
+        finally:
+            await engine.dispose()
+
+    return asyncio.run(execute())
+
+
+def test_0003_gives_existing_users_english(alembic_config: Config, database_url: str) -> None:
+    command.upgrade(alembic_config, "head")
+    command.downgrade(alembic_config, "0002")
+    try:
+        # A config admin who used the bot before the language column existed.
+        run_sql(database_url, "INSERT INTO users (tg_id) VALUES (1)")
+        command.upgrade(alembic_config, "0003")
+
+        assert run_sql(database_url, "SELECT language FROM users") == ["en"]
+    finally:
+        # Other tests expect an empty table at head, so head is restored even if the
+        # cleanup fails.
+        try:
+            run_sql(database_url, "DELETE FROM users")
+        finally:
+            command.upgrade(alembic_config, "head")

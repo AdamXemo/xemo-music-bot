@@ -20,8 +20,9 @@ How the system is shaped and why. Keep this file in sync when boundaries change.
 
 **Dependency rule:** arrows point one way only. `core/` knows nothing about Telegram,
 so the future Mini App backend (FastAPI) can reuse it unchanged. The one exception:
-`providers/` and `db/` may import the plain domain dataclasses in `core/models.py`
-(they return and store `Track`), never services.
+`providers/` and `db/` may import the plain domain types in `core/models.py`
+(dataclasses such as `Track`, which they return and store, and the `Language` literal),
+never services.
 
 ## Package layout (target)
 
@@ -39,10 +40,11 @@ src/xemo_music_bot/
 │   │   └── access.py      # AccessMiddleware: private chats only, members and config admins pass
 │   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005)
 ├── core/
-│   ├── models.py        # domain dataclasses: Track, Playlist, Profile
+│   ├── models.py        # domain dataclasses: Track, Playlist, Profile, and the `Language` literal
 │   ├── metadata.py      # clean performer and title from raw provider metadata
 │   └── services/        # search, delivery, access, library
-│       └── access.py    # AccessService: admin / member / blocked / stranger
+│       ├── access.py    # AccessService: admin / member / blocked / stranger
+│       └── language.py  # LanguageService: change a user's language
 ├── providers/
 │   ├── base.py          # MusicProvider protocol
 │   ├── soundcloud.py
@@ -84,7 +86,8 @@ handler, denying by default:
    and their row is created on their first update.
 3. Strangers (no row) and `blocked` users get the "private bot" line in reply to `/start`
    (with or without a payload) and nothing for anything else.
-4. Members and admins reach the handlers with `db_user` (their `User` row) and `is_admin`.
+4. Members and admins reach the handlers with `db_user` (their `User` row), `is_admin`
+   and `texts` (the catalog for `db_user.language`).
 
 `/start <invite_code>` will be the only way in for friends (Invite codes item).
 
@@ -92,7 +95,7 @@ handler, denying by default:
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with i18n 1/2 |
+| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`, text NOT NULL, server default `en`, CHECK `ck_users_language_valid`; set from Telegram's `language_code` when the row is created, changed via the picker or `/language`) |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 

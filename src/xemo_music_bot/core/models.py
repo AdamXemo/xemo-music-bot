@@ -1,6 +1,13 @@
 """Domain models shared by services, providers and repositories."""
 
 from dataclasses import dataclass
+from typing import Final, Literal
+
+# The languages the bot speaks (ADR 0005). A plain assignment, not a PEP 695 `type`
+# alias, so `typing.get_args` and the ORM's `Mapped[Language]` read the Literal directly.
+Language = Literal["en", "uk", "ru"]
+
+DEFAULT_LANGUAGE: Final[Language] = "en"
 
 
 @dataclass(slots=True, frozen=True)

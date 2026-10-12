@@ -16,9 +16,10 @@ class AccessMiddleware(BaseMiddleware):
     """Drop updates from strangers, blocked users and non-private chats.
 
     Runs as an outer update middleware after ``DbSessionMiddleware``, whose session it
-    uses. Allowed updates reach the handlers with ``db_user`` (the sender's row) and
-    ``is_admin`` in the handler data. Everything else is denied by default: the only
-    reply is the "private bot" line to a stranger's or blocked user's ``/start``.
+    uses. Allowed updates reach the handlers with ``db_user`` (the sender's row),
+    ``is_admin`` and ``texts`` (the catalog for the row's language) in the handler data.
+    Everything else is denied by default: the only reply is the "private bot" line to a
+    stranger's or blocked user's ``/start``.
 
     Args:
         admin_ids: Telegram IDs from config, the only source of admin rights.
@@ -45,13 +46,18 @@ class AccessMiddleware(BaseMiddleware):
             return None
 
         service = AccessService(UsersRepository(data["session"]), self._admin_ids)
-        access = await service.check(sender.id, sender.username)
-        if not access.allowed:
+        access = await service.check(
+            sender.id, sender.username, detect_language(sender.language_code)
+        )
+        # An allowed access always has a row; the `is None` check narrows the type for mypy.
+        if not access.allowed or access.user is None:
             await _reply_private_bot_to_start(event, sender)
             return None
 
         data["db_user"] = access.user
         data["is_admin"] = access.status is AccessStatus.ADMIN
+        # The stored language, not Telegram's: the user may have picked another one.
+        data["texts"] = get_texts(access.user.language)
         return await handler(event, data)
 
 

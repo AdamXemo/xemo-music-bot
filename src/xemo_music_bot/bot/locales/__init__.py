@@ -3,18 +3,15 @@
 Handlers never contain literal copy; they pick a `Texts` catalog here and read its fields.
 """
 
-from typing import Final, Literal
+from typing import Final
 
 from xemo_music_bot.bot.locales.catalog import Texts
 from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
+from xemo_music_bot.core.models import DEFAULT_LANGUAGE, Language
 
 __all__ = ["DEFAULT_LANGUAGE", "Language", "Texts", "detect_language", "get_texts"]
-
-Language = Literal["en", "uk", "ru"]
-
-DEFAULT_LANGUAGE: Final[Language] = "en"
 
 _CATALOGS: Final[dict[Language, Texts]] = {"en": EN, "uk": UK, "ru": RU}
 

@@ -16,7 +16,9 @@ CHAT_ID = 42
 
 @pytest.fixture
 def dispatcher(session_factory: async_sessionmaker[AsyncSession]) -> Dispatcher:
-    # The sender is a config admin, so every update passes the access check.
+    # The sender is a config admin, so every update passes the access check. These tests
+    # cover a row created with Telegram's language; the stored-language case is in
+    # tests/bot/middlewares/test_access.py.
     return build_dispatcher(session_factory, admin_ids=frozenset({CHAT_ID}))
 
 

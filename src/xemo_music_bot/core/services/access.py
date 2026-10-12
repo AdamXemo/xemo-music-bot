@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
+from xemo_music_bot.core.models import Language
 from xemo_music_bot.db.models import User
 from xemo_music_bot.db.repositories.users import UsersRepository
 
@@ -46,13 +47,15 @@ class AccessService:
         self._users = users
         self._admin_ids = admin_ids
 
-    async def check(self, tg_id: int, username: str | None) -> Access:
+    async def check(self, tg_id: int, username: str | None, language: Language) -> Access:
         """Return the user's access, creating the row of a config admin who has none.
 
         Args:
             tg_id: Telegram user ID of the sender.
             username: Telegram username without the leading "@", stored only when the
                 row is created; existing rows are left unchanged.
+            language: The sender's language from Telegram, likewise stored only when
+                the row is created, so a language the user chose is never overwritten.
 
         Returns:
             The access status and the user's row.
@@ -72,7 +75,8 @@ class AccessService:
             # create() returns None when a concurrent update inserted the row first. The
             # losing insert waits until the other update's transaction ends, so once it
             # reports the conflict the row is committed and the read that follows sees it.
-            user = await self._users.create(tg_id, username) or await self._users.get(tg_id)
+            created = await self._users.create(tg_id, username, language)
+            user = created or await self._users.get(tg_id)
         if user is None:
             raise RuntimeError("The admin's users row could not be created or read")
         # Config admins win over role 'blocked': they cannot be banned (ADR 0003).
