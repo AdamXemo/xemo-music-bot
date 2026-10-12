@@ -1,0 +1,22 @@
+# Local infrastructure. The Docker roadmap item adds the bot and Redis services.
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: xemo
+      POSTGRES_PASSWORD: xemo
+      POSTGRES_DB: xemo_music_bot
+    ports:
+      # Loopback only; DB_PORT moves it when a host Postgres already holds 5432.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      # Postgres 18 images keep data in a versioned subdirectory of /var/lib/postgresql.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xemo -d xemo_music_bot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:

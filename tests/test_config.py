@@ -56,6 +56,28 @@ def test_settings_are_read_from_dotenv_file(
     assert settings.log_level == "DEBUG"
 
 
+def test_database_url_defaults_to_local_compose_db(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("BOT_TOKEN", "token")
+
+    assert (
+        Settings().database_url.get_secret_value()
+        == "postgresql+asyncpg://xemo:xemo@localhost:5432/xemo_music_bot"
+    )
+
+
+def test_database_url_is_read_from_env_and_hidden_in_repr(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    url = "postgresql+asyncpg://bot:s3cret@db:5432/music"
+    monkeypatch.setenv("BOT_TOKEN", "token")
+    monkeypatch.setenv("DATABASE_URL", url)
+
+    settings = Settings()
+
+    assert settings.database_url.get_secret_value() == url
+    assert "s3cret" not in repr(settings)
+
+
 def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BOT_TOKEN", "token")
 

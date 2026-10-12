@@ -36,7 +36,7 @@ and Russian. Keep everything else as simple as it can be.
       writes the MVP spec in `docs/features/` (onboarding, language, search, results,
       delivery, errors): English mockups plus copy in all three languages
 - [x] Agent team: create `db-architect` and `qa-reviewer` via `agent-engineer`
-- [ ] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
+- [x] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
       migration (incl. `invited_by`), Postgres service container in CI
 - [ ] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
 - [ ] i18n: `users.language`, language picked on first `/start` (preselected from

@@ -76,7 +76,7 @@ Learn the project from its files, not from memory:
   for `ux-designer`. Do not write a review verdict on your own code; `qa-reviewer` does
   that after you.
 - **Your home is Python.** You may make the small config edits a Python item needs
-  (`pyproject.toml` tool sections, `.env.example`, a service added to an existing CI job
+  (`pyproject.toml` tool sections, the README env var table when a setting is added, a service added to an existing CI job
   or compose file) and call each one out in the report. Items that are mainly CI, Docker
   or GitHub settings are outside this role; say so and stop.
 - **Safety.** Never read out, log or commit secrets, `.env` values, cookies or audio.

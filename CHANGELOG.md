@@ -12,7 +12,7 @@ Versioning: [SemVer](https://semver.org/).
 - `plan-reviewer` subagent and agent team roster.
 - `agent-engineer` subagent for designing and auditing the other agents.
 - Project skeleton: `uv` package on Python 3.13, typed settings via pydantic-settings,
-  logging setup, `python -m xemo_music_bot` entrypoint, `.env.example`.
+  logging setup, `python -m xemo_music_bot` entrypoint; settings documented in the README.
 - Tooling: ruff (format + lint), mypy strict with the pydantic plugin, pytest with
   asyncio and coverage, pre-commit hooks; first tests for settings.
 - `python-engineer` subagent for implementing roadmap items; the main session becomes
@@ -30,6 +30,9 @@ Versioning: [SemVer](https://semver.org/).
   English, Ukrainian and Russian.
 - `MusicProvider` interface and SoundCloud search via yt-dlp (metadata only, off the event
   loop, concurrency-capped), with performer and title cleaned per the MVP spec.
+- Database layer 1/2: async SQLAlchemy engine and session factory, `users` model, Alembic
+  with the first migration, a local Postgres in `docker-compose.yml` and a Postgres
+  service in CI for the database tests.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
