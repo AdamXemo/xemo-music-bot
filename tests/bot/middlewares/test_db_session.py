@@ -11,13 +11,8 @@ from xemo_music_bot.db.repositories.users import UsersRepository
 
 
 @pytest.fixture
-def middleware(connection: AsyncConnection) -> DbSessionMiddleware:
-    # Commits become savepoints on the test connection, so the test can see them and
-    # the connection fixture still rolls everything back.
-    factory = async_sessionmaker(
-        bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
-    )
-    return DbSessionMiddleware(factory)
+def middleware(session_factory: async_sessionmaker[AsyncSession]) -> DbSessionMiddleware:
+    return DbSessionMiddleware(session_factory)
 
 
 async def stored_ids(connection: AsyncConnection) -> list[int]:

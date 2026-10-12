@@ -27,5 +27,7 @@ Verified 2026-10-12 (sqlalchemy 2.1.4, alembic 1.20.0, asyncpg 0.32.0, postgres:
   `sqlalchemy.exc.DBAPIError`. Neither message contains the URL or password.
 - `postgresql.insert(User)...on_conflict_do_nothing(...).returning(User)` via
   `session.scalar` is mypy-clean and returns `User | None`.
+- `insert(Model).values([{...}, {...}])` takes its columns from the FIRST dict and silently
+  drops extra keys of later rows (a `role="blocked"` on row 2 was lost); give every row the same keys.
 - `migrations/env.py` calls `get_settings()` only when no `sqlalchemy.url` is set; that needs
   BOT_TOKEN in env or `.env` for `alembic upgrade head`.

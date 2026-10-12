@@ -32,8 +32,9 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         # Text plus CHECK instead of a native ENUM: adding a role later is a one-line
-        # constraint change rather than an ALTER TYPE migration.
-        CheckConstraint("role IN ('admin', 'user', 'blocked')", name="role_valid"),
+        # constraint change rather than an ALTER TYPE migration. There is no 'admin':
+        # admin rights come only from ADMIN_IDS in config (ADR 0003).
+        CheckConstraint("role IN ('user', 'blocked')", name="role_valid"),
         CheckConstraint("tg_id > 0", name="tg_id_positive"),
         CheckConstraint("invited_by <> tg_id", name="not_self_invited"),
     )

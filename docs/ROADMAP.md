@@ -38,23 +38,20 @@ and Russian. Keep everything else as simple as it can be.
 - [x] Agent team: create `db-architect` and `qa-reviewer` via `agent-engineer`
 - [x] DB layer 1/2: async engine + session factory, Alembic init, `users` model + first
       migration (incl. `invited_by`), Postgres service container in CI
-- [ ] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
-- [ ] Access control: `AccessService` + middleware; strangers and `blocked` get the
+- [x] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
+- [x] Access control: `AccessService` + middleware; strangers and `blocked` get the
       "private bot" reply to `/start` and are otherwise ignored; admins are the
       `admin_ids` from config (the only source of admin rights; drop `'admin'` from the
-      `users.role` CHECK), and their `users` row is created on their first update with
-      `language` from Telegram
-- [ ] i18n 1/2: `users.language` + migration, user's catalog via middleware, welcome with
-      language button, picker, `/language` (testable by the admin before invites exist).
+      `users.role` CHECK), and their `users` row is created on their first update;
+      private chats only, for everyone
+- [ ] i18n 1/2: `users.language` + migration (NOT NULL, server default `'en'`, which
+      backfills admin rows created before it; new rows get the language from Telegram),
+      user's catalog via middleware, welcome with language button, picker, `/language`
+      (testable by the admin before invites exist).
       The `bot/locales/` catalogs (en, uk, ru) per ADR 0005 already landed with the
       hello-world bot
 - [ ] i18n 2/2: localized command menu per language, admin chat-scope commands, bot
       description and short description per language at startup
-- [x] DB layer 2/2: `UsersRepository`, DB session middleware, repository tests against Postgres
-- [ ] i18n: `users.language`, language picked on first `/start` (preselected from
-      Telegram), `/language` to switch, localized command menu. The `bot/locales/`
-      catalogs (en, uk, ru) per ADR 0005 already landed with the hello-world bot
-- [ ] Access control: allowlist middleware, admin role from config, "private bot" reply
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
       a code; `/start <code>` creates the user with `language` from Telegram and welcomes
       them; short spec for admin replies first

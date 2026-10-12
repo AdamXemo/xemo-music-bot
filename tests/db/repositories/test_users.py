@@ -68,9 +68,11 @@ async def test_create_rejects_non_positive_tg_id(users: UsersRepository) -> None
         await users.create(0, "friend")
 
 
-async def test_unknown_role_is_rejected(session: AsyncSession) -> None:
+@pytest.mark.parametrize("role", ["owner", "admin"])
+async def test_unknown_role_is_rejected(session: AsyncSession, role: str) -> None:
+    # 'admin' too: admin rights come only from config, never from a row.
     with pytest.raises(IntegrityError, match="ck_users_role_valid"):
-        await session.execute(insert(User).values(tg_id=1, role="owner"))
+        await session.execute(insert(User).values(tg_id=1, role=role))
 
 
 async def test_deleting_inviter_keeps_invited_user(

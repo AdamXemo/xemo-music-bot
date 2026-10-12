@@ -35,12 +35,14 @@ src/xemo_music_bot/
 │   ├── handlers/        # one router per feature: start, search, library, admin
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
 │   ├── middlewares/     # access control, DB session, throttling
-│   │   └── db_session.py  # DbSessionMiddleware: one session per update, commit after handler
+│   │   ├── db_session.py  # DbSessionMiddleware: one session per update, commit after handler
+│   │   └── access.py      # AccessMiddleware: private chats only, members and config admins pass
 │   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005)
 ├── core/
 │   ├── models.py        # domain dataclasses: Track, Playlist, Profile
 │   ├── metadata.py      # clean performer and title from raw provider metadata
 │   └── services/        # search, delivery, access, library
+│       └── access.py    # AccessService: admin / member / blocked / stranger
 ├── providers/
 │   ├── base.py          # MusicProvider protocol
 │   ├── soundcloud.py
@@ -71,16 +73,26 @@ tests/                   # mirrors src/ layout
 4. Concurrent requests for the same track await the same in-flight download.
 
 ### Access
-`AccessMiddleware` runs before every handler: unknown users get a short "private bot"
-message; `/start <invite_code>` is the only path in. Admins are set in config.
 `DbSessionMiddleware` (outer, on update) opens one session per update and commits
-after the handler; `AccessMiddleware` runs after it.
+after the handler; `AccessMiddleware` (outer, on update) runs after it and before every
+handler, denying by default:
+1. No sender, or a chat that is not private (groups, supergroups, channels): the update
+   is dropped before any query, for admins and members too. The bot works in private
+   chats only.
+2. `AccessService.check()` reads the `users` row. Config admins (`ADMIN_IDS`, the only
+   source of admin rights) are admins even with role `blocked` (they cannot be banned),
+   and their row is created on their first update.
+3. Strangers (no row) and `blocked` users get the "private bot" line in reply to `/start`
+   (with or without a payload) and nothing for anything else.
+4. Members and admins reach the handlers with `db_user` (their `User` row) and `is_admin`.
+
+`/start <invite_code>` will be the only way in for friends (Invite codes item).
 
 ## Data model (MVP)
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK; `admin` is in the CHECK until the Access control item drops it, admin rights come from config), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with the i18n item |
+| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with i18n 1/2 |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 

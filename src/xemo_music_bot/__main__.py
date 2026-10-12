@@ -46,7 +46,7 @@ def main() -> None:
     logger.info("Settings loaded, %d admin(s) configured", len(settings.admin_ids))
     bot = Bot(token=settings.bot_token.get_secret_value())
     engine = create_db_engine(settings.database_url.get_secret_value())
-    dispatcher = build_dispatcher(create_session_factory(engine))
+    dispatcher = build_dispatcher(create_session_factory(engine), settings.admin_ids)
     # partial binds the engine; aiogram calls hooks only with the arguments they declare.
     # Keep check_database the first startup hook: aiogram runs startup hooks before its
     # polling try/finally, so a failing startup hook skips every shutdown hook.
