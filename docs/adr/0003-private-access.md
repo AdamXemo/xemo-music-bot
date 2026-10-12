@@ -11,7 +11,9 @@ The bot is built for a small circle of friends and sits in a legal grey zone
 ## Decision
 
 - An access middleware rejects any Telegram user not in `users`.
-- Admins (Telegram IDs from config) generate invite codes with `/invite`.
+- Admins (Telegram IDs from config) generate invite codes with `/invite`. Config is the
+  only source of admin rights. Config admins need no invite: their `users` row is created
+  on their first update, and they cannot be banned.
 - New users join via deep link `t.me/<bot>?start=<code>`; codes can expire and have a
   use limit.
 - Strangers receive one short "this bot is private" reply and nothing else.

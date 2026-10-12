@@ -70,13 +70,15 @@ tests/                   # mirrors src/ layout
 
 ### Access
 `AccessMiddleware` runs before every handler: unknown users get a short "private bot"
-message; `/start <invite_code>` is the only path in. Admins are set in config.
+message; `/start <invite_code>` is the only way in for friends. Admins come from config
+(`ADMIN_IDS`), the only source of admin rights, and their `users` row is created on their
+first update.
 
 ## Data model (MVP)
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`admin` / `user` / `blocked`, text + CHECK), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with the i18n item |
+| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK; `admin` is in the CHECK until the Access control item drops it, admin rights come from config), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`) arrives with the i18n item |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 
