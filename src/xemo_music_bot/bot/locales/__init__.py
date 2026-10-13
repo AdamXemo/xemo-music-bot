@@ -11,9 +11,12 @@ from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
 from xemo_music_bot.core.models import DEFAULT_LANGUAGE, Language
 
-__all__ = ["DEFAULT_LANGUAGE", "Language", "Texts", "detect_language", "get_texts"]
+__all__ = ["DEFAULT_LANGUAGE", "LANGUAGES", "Language", "Texts", "detect_language", "get_texts"]
 
 _CATALOGS: Final[dict[Language, Texts]] = {"en": EN, "uk": UK, "ru": RU}
+
+LANGUAGES: Final[tuple[Language, ...]] = tuple(_CATALOGS)
+"""Every supported language, in the order the language picker shows them."""
 
 
 def detect_language(language_code: str | None) -> Language:

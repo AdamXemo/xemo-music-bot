@@ -43,7 +43,8 @@ Other messages from strangers are ignored.
 ```
 
 Tapping the language button edits the same message into the picker. The current language
-has `style: primary`.
+has `style: primary`. `language_prompt` is shown in the stored language (assumed default,
+2026-10-13).
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -192,6 +193,13 @@ in the results list, the audio and the `tracks` cache:
 | Language picker | Names in their own language, no flags; current one `primary` | Assumed default |
 | Download failure | Short new message, the track button is restored; tapping it retries | Assumed default |
 | Query length | Over 100 characters is rejected with a hint | Assumed default |
+| Picking the current language | Same as a change: the welcome picker edits back to the same welcome; the `/language` picker shows `language_set`. No toast, no special copy | Owner-approved default, 2026-10-12 |
+| Back from the welcome picker | No Back button; picking the current language is the way back | Owner-approved default, 2026-10-12 |
+| Language callbacks | Stateless (language code and origin only); work on any old message, no expiry | Owner-approved default, 2026-10-12 |
+| Language source | Allowed updates use `users.language`; strangers and blocked users get Telegram's `language_code` | Owner-approved default, 2026-10-12 |
+| Denied callbacks | Taps from strangers, blocked users or groups are answered without text; nothing is edited | Assumed default, 2026-10-13 |
+| Picker prompt language | `language_prompt` in the stored language | Assumed default, 2026-10-13 |
+| Welcome before Search UX ships | Uses the final `welcome` copy; only the admin sees it before invites exist | Owner, 2026-10-12 |
 
 ## Copy
 
@@ -204,7 +212,7 @@ matches the audio player); track buttons use `result_label` instead.
 | private_bot | This bot is private. To join, ask a friend who uses it for an invite. | Це приватний бот. Щоб приєднатися, попросіть запрошення в друга, який ним користується. | Это закрытый бот. Чтобы присоединиться, попросите приглашение у друга, который им пользуется. | |
 | invite_invalid | This invite doesn't work anymore. Ask for a new one. | Це запрошення вже не діє. Попросіть нове. | Это приглашение больше не действует. Попросите новое. | |
 | welcome | Send me a track name and I'll find it. | Надішліть назву треку, і я його знайду. | Пришлите название трека, и я его найду. | slot `hello` may prefix |
-| language_button | Language: English | Мова: українська | Язык: русский | button, slot `language` icon; max 16 chars |
+| language_button | Language: English | Мова: українська | Язык: русский | button, slot `language` icon; max 20 chars |
 | language_name | English | Українська | Русский | picker button label |
 | language_prompt | Choose a language. | Виберіть мову. | Выберите язык. | |
 | language_set | Done, I speak English now. | Готово, тепер я говорю українською. | Готово, теперь я говорю по-русски. | proofread UK/RU |
@@ -277,6 +285,18 @@ matches the audio player); track buttons use `result_label` instead.
 - **Unknown command:** `unknown_command`.
 - **Message deleted by the user while a track loads:** the audio is still sent; the
   button restore is skipped silently.
+- **Picking the language already set** (owner-approved default, 2026-10-12): handled
+  like a change. The welcome picker edits back to the welcome; the `/language` picker
+  shows `language_set`. No toast.
+- **Language buttons on an old message** (owner-approved default, 2026-10-12): they
+  keep working. An old welcome's picker highlights the language stored now; picking
+  re-renders that message in the new language. No expiry toast. Other old messages are
+  not updated after a change (assumed default, 2026-10-13).
+- **Button tap from a stranger, a blocked user or a group** (assumed default,
+  2026-10-13): the callback is answered without text; nothing is edited or sent.
+- **Double tap or "message is not modified" on a language edit** (owner-approved
+  default, 2026-10-12): the callback is answered without text and the error is ignored
+  silently.
 
 ## Technical notes
 
@@ -299,7 +319,8 @@ matches the audio player); track buttons use `result_label` instead.
   a user changes language, also set that user's chat-scope commands in the chosen
   language. For admins the chat scope includes the admin commands. Bot description and
   short description are set per language at startup.
-- Language detection: any `language_code` starting with `uk` or `ru` maps to it; else `en`.
+- Language detection: a `language_code` whose primary subtag is `uk` or `ru` maps to it
+  (`uk-UA` -> uk); else `en`.
 - `sendAudio` on a cache miss: `performer` and `title` (cleaned), `duration` in seconds,
   `thumbnail`, no `caption`, no `reply_markup`. Bot API (checked 2026-10-10): the
   thumbnail must be JPEG, under 200 kB, width and height at most 320; it is only used when

@@ -3,6 +3,10 @@
 from xemo_music_bot.bot.locales.catalog import Texts
 
 EN = Texts(
-    greeting="Hi! This is Xemo Music. Track search is coming soon.",
     private_bot="This bot is private. To join, ask a friend who uses it for an invite.",
+    welcome="Send me a track name and I'll find it.",
+    language_button="Language: English",
+    language_name="English",
+    language_prompt="Choose a language.",
+    language_set="Done, I speak English now.",
 )

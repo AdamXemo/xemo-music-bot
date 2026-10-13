@@ -1,3 +1,4 @@
+import html
 import unicodedata
 from dataclasses import fields
 
@@ -29,6 +30,20 @@ def test_each_language_has_its_own_catalog() -> None:
     assert get_texts("en") is EN
     assert get_texts("uk") is UK
     assert get_texts("ru") is RU
+
+
+@pytest.mark.parametrize("texts", [EN, UK, RU])
+def test_language_button_fits_the_spec_budget(texts: Texts) -> None:
+    assert len(texts.language_button) <= 20, texts.language_button
+
+
+@pytest.mark.parametrize("texts", [EN, UK, RU])
+def test_copy_is_valid_html_text(texts: Texts) -> None:
+    # Copy is sent in HTML parse mode; a literal & or < breaks the send. Allow tags
+    # explicitly when the spec asks for bold.
+    for field in fields(texts):
+        value = getattr(texts, field.name)
+        assert html.escape(value, quote=False) == value, field.name
 
 
 @pytest.mark.parametrize("texts", [EN, UK, RU])

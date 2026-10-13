@@ -33,8 +33,10 @@ src/xemo_music_bot/
 ├── logging_setup.py     # root logger configuration, called once at startup
 ├── bot/
 │   ├── dispatcher.py    # build_dispatcher(): attaches every feature router
-│   ├── handlers/        # one router per feature: start, search, library, admin
+│   ├── emoji.py         # custom emoji slots (UX guide); empty until the owner picks ids
+│   ├── handlers/        # one router per feature: start, language, search, library, admin
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
+│   │   └── language.py  # welcome's language button, language picker
 │   ├── middlewares/     # access control, DB session, throttling
 │   │   ├── db_session.py  # DbSessionMiddleware: one session per update, commit after handler
 │   │   └── access.py      # AccessMiddleware: private chats only, members and config admins pass
@@ -90,6 +92,12 @@ handler, denying by default:
    and `texts` (the catalog for `db_user.language`).
 
 `/start <invite_code>` will be the only way in for friends (Invite codes item).
+
+### Language
+1. A pick calls `LanguageService.set_language()` and edits the message in the new
+   language: back to the welcome, or to a confirmation after `/language`.
+2. Callback data is stateless (`language:<code>:<origin>`), so old pickers keep working;
+   an unknown code fails parsing and never reaches the database.
 
 ## Data model (MVP)
 

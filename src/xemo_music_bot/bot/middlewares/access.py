@@ -19,7 +19,8 @@ class AccessMiddleware(BaseMiddleware):
     uses. Allowed updates reach the handlers with ``db_user`` (the sender's row),
     ``is_admin`` and ``texts`` (the catalog for the row's language) in the handler data.
     Everything else is denied by default: the only reply is the "private bot" line to a
-    stranger's or blocked user's ``/start``.
+    stranger's or blocked user's ``/start``, and a denied callback query is answered
+    without text.
 
     Args:
         admin_ids: Telegram IDs from config, the only source of admin rights.
@@ -43,6 +44,7 @@ class AccessMiddleware(BaseMiddleware):
         # The bot lives in private chats only, for members and admins too. Checked before
         # any query, so group traffic costs no database round trip.
         if chat is not None and chat.type != ChatType.PRIVATE:
+            await _answer_callback(event)
             return None
 
         service = AccessService(UsersRepository(data["session"]), self._admin_ids)
@@ -51,6 +53,7 @@ class AccessMiddleware(BaseMiddleware):
         )
         # An allowed access always has a row; the `is None` check narrows the type for mypy.
         if not access.allowed or access.user is None:
+            await _answer_callback(event)
             await _reply_private_bot_to_start(event, sender)
             return None
 
@@ -59,6 +62,12 @@ class AccessMiddleware(BaseMiddleware):
         # The stored language, not Telegram's: the user may have picked another one.
         data["texts"] = get_texts(access.user.language)
         return await handler(event, data)
+
+
+async def _answer_callback(event: TelegramObject) -> None:
+    """Answer a denied callback query without text, so an old button stops spinning."""
+    if isinstance(event, Update) and event.callback_query is not None:
+        await event.callback_query.answer()
 
 
 async def _reply_private_bot_to_start(event: TelegramObject, sender: User) -> None:

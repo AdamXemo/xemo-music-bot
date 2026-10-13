@@ -44,7 +44,7 @@ and Russian. Keep everything else as simple as it can be.
       `admin_ids` from config (the only source of admin rights; drop `'admin'` from the
       `users.role` CHECK), and their `users` row is created on their first update;
       private chats only, for everyone
-- [ ] i18n 1/2: `users.language` + migration (NOT NULL, server default `'en'`, which
+- [x] i18n 1/2: `users.language` + migration (NOT NULL, server default `'en'`, which
       backfills admin rows created before it; new rows get the language from Telegram),
       user's catalog via middleware, welcome with language button, picker, `/language`
       (testable by the admin before invites exist).

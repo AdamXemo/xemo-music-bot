@@ -4,6 +4,8 @@ import logging
 from functools import partial
 
 from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -44,7 +46,11 @@ def main() -> None:
     settings = get_settings()
     setup_logging(settings.log_level)
     logger.info("Settings loaded, %d admin(s) configured", len(settings.admin_ids))
-    bot = Bot(token=settings.bot_token.get_secret_value())
+    # HTML for every message (MVP spec): custom emoji slots render as <tg-emoji> tags.
+    bot = Bot(
+        token=settings.bot_token.get_secret_value(),
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
     engine = create_db_engine(settings.database_url.get_secret_value())
     dispatcher = build_dispatcher(create_session_factory(engine), settings.admin_ids)
     # partial binds the engine; aiogram calls hooks only with the arguments they declare.

@@ -4,10 +4,12 @@ from typing import Any
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.methods import SendMessage, TelegramMethod
-from aiogram.types import Chat, Message, Update, User
+from aiogram.types import Chat, InlineKeyboardMarkup, Message, Update, User
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from xemo_music_bot.bot import emoji
 from xemo_music_bot.bot.dispatcher import build_dispatcher
+from xemo_music_bot.bot.keyboards.language import OpenPickerCallback
 from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.uk import UK
 
@@ -34,7 +36,7 @@ def make_update(text: str, language_code: str | None) -> Update:
     return Update(update_id=1, message=message)
 
 
-async def test_start_replies_with_greeting_in_user_language(
+async def test_start_sends_welcome_with_language_button_in_user_language(
     bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
 ) -> None:
     await dispatcher.feed_update(bot, make_update("/start", "uk"))
@@ -42,7 +44,13 @@ async def test_start_replies_with_greeting_in_user_language(
     [request] = sent_requests
     assert isinstance(request, SendMessage)
     assert request.chat_id == CHAT_ID
-    assert request.text == UK.greeting
+    assert request.text == UK.welcome
+    assert isinstance(request.reply_markup, InlineKeyboardMarkup)
+    [[button]] = request.reply_markup.inline_keyboard
+    assert button.text == UK.language_button
+    assert button.callback_data == OpenPickerCallback().pack()
+    # Empty emoji slots render nothing.
+    assert button.icon_custom_emoji_id is None
 
 
 async def test_start_falls_back_to_english_for_unsupported_language(
@@ -52,7 +60,28 @@ async def test_start_falls_back_to_english_for_unsupported_language(
 
     [request] = sent_requests
     assert isinstance(request, SendMessage)
-    assert request.text == EN.greeting
+    assert request.text == EN.welcome
+
+
+async def test_start_shows_emoji_slots_once_they_are_set(
+    bot: Bot,
+    sent_requests: list[TelegramMethod[Any]],
+    dispatcher: Dispatcher,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(emoji, "HELLO", emoji.CustomEmoji(emoji_id="1", alt="\N{WAVING HAND SIGN}"))
+    monkeypatch.setattr(
+        emoji, "LANGUAGE", emoji.CustomEmoji(emoji_id="2", alt="\N{GLOBE WITH MERIDIANS}")
+    )
+
+    await dispatcher.feed_update(bot, make_update("/start", "en"))
+
+    [request] = sent_requests
+    assert isinstance(request, SendMessage)
+    assert request.text == f'<tg-emoji emoji-id="1">\N{WAVING HAND SIGN}</tg-emoji> {EN.welcome}'
+    assert isinstance(request.reply_markup, InlineKeyboardMarkup)
+    [[button]] = request.reply_markup.inline_keyboard
+    assert button.icon_custom_emoji_id == "2"
 
 
 async def test_other_text_is_not_answered_by_start(
