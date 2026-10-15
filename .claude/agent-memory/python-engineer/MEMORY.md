@@ -1,4 +1,5 @@
 - [aiogram quirks](aiogram-quirks.md) - 3.31 pydantic pin, router attach-once, handler test fake, deny-test rule, CallbackData, fake API errors
 - [Tooling gotchas](tooling-gotchas.md) - Bash hook blocks heredocs; RUF001 on UK/RU copy; unique test basenames; tests ~2x code
 - [DB quirks](db-quirks.md) - host PG on 5432 (DB_PORT=55432), PG18 volume path, alembic check skips CHECKs, multi-row insert keys
+- [Redis quirks](redis-quirks.md) - redis-py 8.1 is typed (no narrowing), pipeline usage, TEST_REDIS_URL index 15
 - [yt-dlp quirks](yt-dlp-quirks.md) - 2026.8.19 flat scsearch entry shape, HEAD per entry latency, Go+ 30 s previews, no py.typed

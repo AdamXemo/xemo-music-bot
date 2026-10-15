@@ -55,8 +55,10 @@ src/xemo_music_bot/
 └── db/
     ├── models.py        # SQLAlchemy ORM models
     ├── session.py       # engine + session factory, startup connection check
-    └── repositories/    # one per aggregate: users, invites, tracks
-        └── users.py     # UsersRepository
+    ├── redis.py         # Redis client factory, startup connection check
+    └── repositories/    # one per aggregate: users, invites, tracks, search sessions
+        ├── users.py     # UsersRepository
+        └── search_sessions.py  # SearchSessionsRepository (Redis)
 migrations/              # Alembic
 tests/                   # mirrors src/ layout
 ```
@@ -65,10 +67,11 @@ tests/                   # mirrors src/ layout
 
 ### Search
 1. User sends text → `search` handler → `SearchService.search(query, page)`.
-2. Service calls the provider (results cached in Redis for a few minutes).
+2. Service calls the provider; the search session (query, results, page) lives in Redis
+   for 30 minutes after its last use.
 3. Handler renders **one** message with inline buttons; pagination edits that message.
-   Callback data carries only `<session_id>:<page>` or `<provider>:<track_id>`; the query
-   and results live in Redis, because Telegram limits callback data to 64 bytes.
+   Callback data carries only the session id plus a page number or a result index; the
+   query and results live in Redis, because Telegram limits callback data to 64 bytes.
 
 ### Delivery (tap a track)
 1. `DeliveryService.get_audio(track_ref)` checks `tracks.tg_file_id`.
@@ -114,6 +117,14 @@ handler, denying by default:
 | `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`, text NOT NULL, server default `en`, CHECK `ck_users_language_valid`; set from Telegram's `language_code` when the row is created, changed via the picker or `/language`); `language_chosen` (boolean NOT NULL, server default false; set true by any language pick; while false, `/start` shows the language picker) |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
+
+Redis (cache only; persistence off, every key has a TTL, losing a key shows `results_expired`):
+
+| Key | Purpose | Value, TTL |
+|-----|---------|------------|
+| `xemo:search:{sid}` | Search session: owner, query, results | JSON with `v`, 30 min, refreshed on every read |
+| `xemo:search:{sid}:page` | Page the results message shows | 0-based int, 30 min, refreshed with the session |
+| `xemo:search:{sid}:loading:{index}` | Track being downloaded; `SET NX` refuses a double tap | `1`, 10 min fixed |
 
 Later phases add `linked_profiles`, `favorites`, `history`.
 Constraint names follow the `MetaData` naming convention in `db/models.py`.

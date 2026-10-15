@@ -55,6 +55,9 @@ and Russian. Keep everything else as simple as it can be.
       startup, any user on a language pick), bot description and short description per
       language at startup. The menu lists only the commands that exist (`/start`,
       `/language`); `/help`, `/invite`, `/revoke` and `/ban` add their own entries
+> Order note (2026-10-15): search comes first. The Invite codes and Revocation items below
+> stay where they are but are done after Delivery; until then the owner tests as an admin.
+
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
       a code and is added to the admin menu; `/start <code>` creates the user with
       `language` from Telegram and shows the language picker, then the welcome; short spec
@@ -63,14 +66,14 @@ and Russian. Keep everything else as simple as it can be.
       rejected by the access middleware; config admins cannot be banned; adds both to the
       admin menu
 - [x] Provider interface (`MusicProvider`) + SoundCloud provider: search
-- [ ] Redis: client from config, search session cache (results, page and loading set
+- [x] Redis: client from config, search session cache (results, page and loading set
       under a short id with TTL)
-- [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
-      and friends' devices; decides whether cards replace track buttons later
 - [ ] Search UX: text message → one results message, inline buttons, pagination by edit
 - [ ] Provider download: `MusicProvider.download()` via yt-dlp in `asyncio.to_thread`
       behind a semaphore, temp dir always cleaned up, max-duration guard (50 MB upload cap)
 - [ ] Delivery: track button → `DeliveryService` → `sendAudio` with title/artist/cover/duration
+- [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
+      and friends' devices; decides whether cards replace track buttons later
 - [ ] `file_id` cache: `tracks` table; repeat requests are instant, no re-download
 - [ ] De-duplicate in-flight downloads of the same track
 - [ ] Error UX: friendly messages for not found / too long / source failure

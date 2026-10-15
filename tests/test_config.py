@@ -78,6 +78,17 @@ def test_database_url_is_read_from_env_and_hidden_in_repr(
     assert "s3cret" not in repr(settings)
 
 
+def test_redis_url_defaults_to_local_compose_redis_and_is_hidden_in_repr(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("BOT_TOKEN", "token")
+
+    settings = Settings()
+
+    assert settings.redis_url.get_secret_value() == "redis://127.0.0.1:6379/0"
+    assert "6379" not in repr(settings)
+
+
 def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BOT_TOKEN", "token")
 

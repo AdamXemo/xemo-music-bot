@@ -29,7 +29,8 @@ uv run pre-commit install        # run format, lint and type checks on every com
 uv run python -m xemo_music_bot  # run
 ```
 
-The bot needs a running, migrated Postgres; if it cannot connect, it logs why and exits.
+The bot needs a running, migrated Postgres and a running Redis; if it cannot connect to
+either, it logs why and exits.
 
 Settings come from environment variables or a local `.env` file (gitignored, never
 committed):
@@ -40,6 +41,7 @@ committed):
 | `ADMIN_IDS`    | no       | JSON list of admin Telegram user IDs, e.g. `[123456789]`        |
 | `LOG_LEVEL`    | no       | `DEBUG`, `INFO` (default), `WARNING`, `ERROR` or `CRITICAL`     |
 | `DATABASE_URL` | no       | asyncpg Postgres URL; defaults to the `docker compose` database |
+| `REDIS_URL`    | no       | Redis URL; defaults to the `docker compose` Redis (`redis://127.0.0.1:6379/0`) |
 
 Checks: `uv run ruff format . && uv run ruff check . && uv run mypy && uv run pytest`
 
@@ -60,6 +62,23 @@ disposable database (they drop tables, so never use the development one):
 ```bash
 docker compose exec db createdb -U xemo xemo_test
 TEST_DATABASE_URL=postgresql+asyncpg://xemo:xemo@localhost:5432/xemo_test uv run pytest
+```
+
+### Redis
+
+```bash
+docker compose up -d redis       # local Redis on port 6379 (the REDIS_URL default)
+```
+
+Redis is a cache only: persistence is off and every key has a TTL. Port 6379 already
+taken? Set `REDIS_PORT` and a `REDIS_URL` with the same port in `.env`, and use that port
+in `TEST_REDIS_URL` below.
+
+Redis tests are skipped unless `TEST_REDIS_URL` is set. They flush the whole database
+index it names, so use a spare one and never index 0 (the development one):
+
+```bash
+TEST_REDIS_URL=redis://127.0.0.1:6379/15 uv run pytest
 ```
 
 ## Documentation
