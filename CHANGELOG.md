@@ -7,7 +7,11 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Search UX 1/2: `SearchService` (search, paging, loading marks over the Redis session),
+- Search UX: any text message searches and gets one results message with a button per
+  track and a pager (`‹ Back`, counter, `Next ›`) that edits the message; replies for no
+  results, a failing source, long queries, links, non-text messages and unknown
+  commands; expired results show a toast. Tapping a track does nothing until Delivery.
+- Search UX (service half): `SearchService` (search, paging, loading marks over the Redis session),
   the track button label (`result_label`, 32-character budget) and the service wired into
   the dispatcher; no visible change yet.
 - Redis: client from `REDIS_URL`, startup connection check, `redis` service in compose and

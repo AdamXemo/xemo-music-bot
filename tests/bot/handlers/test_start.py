@@ -69,11 +69,3 @@ async def test_start_shows_hello_emoji_once_the_slot_is_set(
     [request] = sent_requests
     assert isinstance(request, SendMessage)
     assert request.text == f'<tg-emoji emoji-id="1">\N{WAVING HAND SIGN}</tg-emoji> {RU.welcome}'
-
-
-async def test_other_text_is_not_answered_by_start(
-    bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
-) -> None:
-    await dispatcher.feed_update(bot, make_update("hello"))
-
-    assert sent_requests == []

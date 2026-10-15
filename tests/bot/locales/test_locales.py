@@ -51,6 +51,8 @@ def test_copy_is_valid_html_text(texts: Texts) -> None:
     # explicitly when the spec asks for bold.
     for field in fields(texts):
         value = getattr(texts, field.name)
+        if field.name == "results_header":
+            value = value.replace("<b>", "").replace("</b>", "")
         assert html.escape(value, quote=False) == value, field.name
 
 

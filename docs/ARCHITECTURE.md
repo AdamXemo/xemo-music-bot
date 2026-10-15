@@ -75,8 +75,13 @@ tests/                   # mirrors src/ layout
    `main()` builds the service once and the dispatcher passes it to handlers as
    `search_service`.
 3. Handler renders **one** message with inline buttons; pagination edits that message.
-   Callback data carries only the session id plus a page number or a result index; the
-   query and results live in Redis, because Telegram limits callback data to 64 bytes.
+   Callback data carries only the session id plus a page number or a result index
+   (`track:<id>:<index>`, `page:<id>:<page>`); the query and results live in Redis,
+   because Telegram limits callback data to 64 bytes. The `search` router is included
+   after the command routers (its unknown-command and non-text handlers match anything)
+   and before the fallback. Pager arrows at the ends and the counter are buttons with
+   `disabled` set, so the row keeps its shape. An expired or foreign session answers with
+   the `results_expired` toast and removes the keyboard.
 
 ### Delivery (tap a track)
 1. `DeliveryService.get_audio(track_ref)` checks `tracks.tg_file_id`.
