@@ -34,3 +34,22 @@ class Track:
     duration: int
     artwork_url: str | None
     page_url: str
+
+
+@dataclass(slots=True, frozen=True)
+class SearchSession:
+    """One user's search: what they asked, what was found and which page they are on.
+
+    Attributes:
+        id: Short random id; the only part of the session that goes into callback data.
+        owner_id: Telegram ID of the user who searched.
+        query: The search text.
+        tracks: All results in display order; a result's index counts across pages.
+        page: The page the results message shows, counting from 0.
+    """
+
+    id: str
+    owner_id: int
+    query: str
+    tracks: tuple[Track, ...]
+    page: int

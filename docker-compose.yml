@@ -1,4 +1,4 @@
-# Local infrastructure. The Docker roadmap item adds the bot and Redis services.
+# Local infrastructure. The Docker roadmap item adds the bot service.
 services:
   db:
     image: postgres:18-alpine
@@ -14,6 +14,18 @@ services:
       - db-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U xemo -d xemo_music_bot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:8-alpine
+    # A cache only (ADR 0004): nothing in it must survive a restart, so persistence is off.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      # Loopback only; REDIS_PORT moves it when a host Redis already holds 6379.
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10

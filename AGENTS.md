@@ -42,7 +42,7 @@ uv run ruff format .         # format
 uv run ruff check . --fix    # lint
 uv run mypy                  # type-check (src + tests)
 uv run pytest                # tests (add --cov for coverage)
-docker compose up -d db      # local Postgres (Redis arrives with the Redis item)
+docker compose up -d db redis  # local Postgres and Redis
 uv run python -m xemo_music_bot  # run the bot
 ```
 

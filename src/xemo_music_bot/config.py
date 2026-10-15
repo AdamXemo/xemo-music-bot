@@ -21,6 +21,7 @@ class Settings(BaseSettings):
         admin_ids: Telegram user IDs with admin rights (invites, bans).
         log_level: Minimum level for log records.
         database_url: SQLAlchemy URL of the Postgres database (asyncpg driver).
+        redis_url: URL of the Redis cache.
     """
 
     model_config = SettingsConfigDict(
@@ -39,6 +40,9 @@ class Settings(BaseSettings):
     database_url: SecretStr = SecretStr(
         "postgresql+asyncpg://xemo:xemo@localhost:5432/xemo_music_bot"
     )
+    # 127.0.0.1, not localhost: compose publishes Redis on IPv4 loopback only. Secret
+    # because a URL can carry a password.
+    redis_url: SecretStr = SecretStr("redis://127.0.0.1:6379/0")
 
 
 @lru_cache(maxsize=1)

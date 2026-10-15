@@ -1,19 +1,24 @@
 import os
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 from alembic import command
 from alembic.config import Config
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession
 
 from xemo_music_bot.config import get_settings
+from xemo_music_bot.db.redis import create_redis
 from xemo_music_bot.db.session import create_db_engine
 
-SETTINGS_ENV_VARS = ("BOT_TOKEN", "ADMIN_IDS", "LOG_LEVEL", "DATABASE_URL")
+SETTINGS_ENV_VARS = ("BOT_TOKEN", "ADMIN_IDS", "LOG_LEVEL", "DATABASE_URL", "REDIS_URL")
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
 # Port 1 refuses at once, so code that touches this database fails fast and visibly.
 UNREACHABLE_DATABASE_URL = "postgresql+asyncpg://xemo:not-logged@127.0.0.1:1/xemo"
+# Port 1 refuses at once, like the database one above.
+UNREACHABLE_REDIS_URL = "redis://:not-logged@127.0.0.1:1/0"
 
 
 @pytest.fixture(autouse=True)
@@ -103,3 +108,43 @@ async def session(connection: AsyncConnection) -> AsyncIterator[AsyncSession]:
         bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
     ) as session:
         yield session
+
+
+@pytest.fixture(scope="session")
+def redis_url() -> str:
+    """URL of a disposable Redis database index, or skip when none is configured.
+
+    Deliberately not REDIS_URL: the `redis` fixture flushes the index, so it must never
+    run against the development one by accident.
+    """
+    url = os.environ.get("TEST_REDIS_URL")
+    if not url:
+        # In CI a missing URL is a broken workflow, not a choice; a skip would hide it.
+        if os.environ.get("CI"):
+            pytest.fail("TEST_REDIS_URL must be set in CI")
+        pytest.skip("TEST_REDIS_URL is not set")
+    # Index 0 (also the default when the URL names none) is the bot's own; flushing it
+    # would wipe live search sessions.
+    if urlparse(url).path.strip("/") in ("", "0"):
+        pytest.fail("TEST_REDIS_URL must name a non-zero database index, e.g. /15")
+    return url
+
+
+@pytest.fixture
+async def redis(redis_url: str) -> AsyncIterator[Redis]:
+    """Client for the test Redis index, emptied before each test.
+
+    Per test, because connections belong to the event loop that opened them.
+    """
+    client = create_redis(redis_url)
+    await client.flushdb()
+    yield client
+    await client.aclose()
+
+
+@pytest.fixture
+async def unreachable_redis() -> AsyncIterator[Redis]:
+    """Client for a Redis that does not exist, for tests that must not need one."""
+    client = create_redis(UNREACHABLE_REDIS_URL)
+    yield client
+    await client.aclose()
