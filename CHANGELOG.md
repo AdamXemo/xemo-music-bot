@@ -51,6 +51,11 @@ Versioning: [SemVer](https://semver.org/).
   pick turns it into a confirmation. Messages use HTML parse mode.
   Button taps from strangers, blocked users and groups are answered silently; taps on
   buttons no handler recognises are answered silently and those buttons are removed.
+- i18n 2/2: at startup the bot publishes its command menu (`/start`, `/language`), description
+  and short description in English, Ukrainian and Russian (English for other clients), and
+  each config admin's chat menu in their stored language; every language pick also sets that
+  user's chat menu, so the menu follows the bot language. Telegram errors there are only
+  logged. Menu entries for `/help`, `/invite`, `/revoke` and `/ban` come with their own items.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.

@@ -9,9 +9,11 @@ from aiogram.methods import (
     EditMessageReplyMarkup,
     EditMessageText,
     SendMessage,
+    SetMyCommands,
     TelegramMethod,
 )
 from aiogram.types import (
+    BotCommandScopeChat,
     CallbackQuery,
     Chat,
     InaccessibleMessage,
@@ -24,9 +26,10 @@ from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 from xemo_music_bot.bot import emoji
+from xemo_music_bot.bot.commands import build_commands
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.bot.keyboards.language import PickerOrigin, PickLanguageCallback
-from xemo_music_bot.bot.locales import Language, Texts
+from xemo_music_bot.bot.locales import Language, Texts, get_texts
 from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
@@ -108,15 +111,24 @@ def assert_picker(markup: object, origin: PickerOrigin) -> None:
     ]
 
 
-def answered_edit(requests: list[TelegramMethod[Any]]) -> EditMessageText:
-    """Check the tap was answered without text, then its message edited; return the edit."""
-    answer, edit = requests
+def assert_chat_menu(request: TelegramMethod[Any], language: Language) -> None:
+    """Check the request sets the member's chat-scope menu in ``language``."""
+    assert isinstance(request, SetMyCommands)
+    assert request.scope == BotCommandScopeChat(chat_id=MEMBER_ID)
+    assert request.language_code is None
+    assert request.commands == build_commands(get_texts(language))
+
+
+def answered_edit(requests: list[TelegramMethod[Any]], language: Language) -> EditMessageText:
+    """Check the tap was answered, its message edited, then the menu set; return the edit."""
+    answer, edit, menu = requests
     assert isinstance(answer, AnswerCallbackQuery)
     assert answer.text is None
     assert isinstance(edit, EditMessageText)
     assert (edit.chat_id, edit.message_id) == (MEMBER_ID, MESSAGE_ID)
     # The edit drops the picker's buttons.
     assert edit.reply_markup is None
+    assert_chat_menu(menu, language)
     return edit
 
 
@@ -168,7 +180,7 @@ async def test_first_run_pick_saves_and_edits_picker_into_welcome_in_that_langua
     await dispatcher.feed_update(bot, make_tap(pick(language, PickerOrigin.FIRST_RUN)))
 
     assert await stored_language(connection) == (language, True)
-    assert answered_edit(sent_requests).text == texts.welcome
+    assert answered_edit(sent_requests, language).text == texts.welcome
 
 
 async def test_first_run_pick_keeps_hello_emoji_in_new_language(
@@ -181,7 +193,7 @@ async def test_first_run_pick_keeps_hello_emoji_in_new_language(
 
     await dispatcher.feed_update(bot, make_tap(pick("ru", PickerOrigin.FIRST_RUN)))
 
-    edit = answered_edit(sent_requests)
+    edit = answered_edit(sent_requests, "ru")
     assert edit.text == f'<tg-emoji emoji-id="1">\N{WAVING HAND SIGN}</tg-emoji> {RU.welcome}'
 
 
@@ -219,7 +231,45 @@ async def test_pick_from_command_saves_and_confirms_in_that_language_without_key
     await dispatcher.feed_update(bot, make_tap(pick(language, PickerOrigin.COMMAND)))
 
     assert await stored_language(connection) == (language, True)
-    assert answered_edit(sent_requests).text == texts.language_set
+    assert answered_edit(sent_requests, language).text == texts.language_set
+
+
+async def test_pick_succeeds_when_telegram_rejects_the_menu(
+    bot: Bot,
+    sent_requests: list[TelegramMethod[Any]],
+    dispatcher: Dispatcher,
+    connection: AsyncConnection,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def make_request(_bot: Bot, method: TelegramMethod[Any], **_kwargs: Any) -> None:
+        sent_requests.append(method)
+        if isinstance(method, SetMyCommands):
+            raise TelegramBadRequest(method, "Bad Request: chat not found")
+
+    monkeypatch.setattr(bot.session, "make_request", make_request)
+
+    await dispatcher.feed_update(bot, make_tap(pick("ru", PickerOrigin.FIRST_RUN)))
+
+    # The save stands and the reply was edited; only the menu is missing.
+    assert await stored_language(connection) == ("ru", True)
+    _answer, edit, menu = sent_requests
+    assert isinstance(edit, EditMessageText)
+    assert edit.text == RU.welcome
+    assert isinstance(menu, SetMyCommands)
+
+
+async def test_failed_pick_edit_leaves_the_menu_alone(
+    bot: Bot,
+    sent_requests: list[TelegramMethod[Any]],
+    dispatcher: Dispatcher,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fail_edits(bot, sent_requests, monkeypatch, "Bad Request: message to edit not found")
+
+    with pytest.raises(TelegramBadRequest):
+        await dispatcher.feed_update(bot, make_tap(pick("ru", PickerOrigin.FIRST_RUN)))
+
+    assert not [r for r in sent_requests if isinstance(r, SetMyCommands)]
 
 
 async def test_pick_from_command_makes_the_next_start_send_the_welcome(
@@ -274,8 +324,9 @@ async def test_pick_on_deleted_message_saves_and_answers_without_edit(
     await dispatcher.feed_update(bot, tap)
 
     assert await stored_language(connection) == ("ru", True)
-    [answer] = sent_requests
+    answer, menu = sent_requests
     assert isinstance(answer, AnswerCallbackQuery)
+    assert_chat_menu(menu, "ru")
 
 
 def fail_edits(
@@ -303,7 +354,7 @@ async def test_edit_that_changes_nothing_is_ignored_after_answering(
 
     await dispatcher.feed_update(bot, make_tap(pick("uk", PickerOrigin.FIRST_RUN)))
 
-    answered_edit(sent_requests)
+    answered_edit(sent_requests, "uk")
 
 
 async def test_other_edit_errors_propagate_and_roll_back_the_pick(

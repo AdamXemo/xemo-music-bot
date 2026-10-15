@@ -9,6 +9,7 @@ from aiogram.enums import ParseMode
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from xemo_music_bot.bot.commands import publish_commands
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.config import get_settings
 from xemo_music_bot.db.session import check_connection, create_db_engine, create_session_factory
@@ -52,11 +53,14 @@ def main() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     engine = create_db_engine(settings.database_url.get_secret_value())
-    dispatcher = build_dispatcher(create_session_factory(engine), settings.admin_ids)
-    # partial binds the engine; aiogram calls hooks only with the arguments they declare.
+    session_factory = create_session_factory(engine)
+    dispatcher = build_dispatcher(session_factory, settings.admin_ids)
+    # partial binds the leading arguments; aiogram calls hooks only with the arguments they
+    # declare (publish_commands asks for `bot`).
     # Keep check_database the first startup hook: aiogram runs startup hooks before its
     # polling try/finally, so a failing startup hook skips every shutdown hook.
     dispatcher.startup.register(partial(check_database, engine))
+    dispatcher.startup.register(partial(publish_commands, session_factory, settings.admin_ids))
     dispatcher.shutdown.register(partial(close_database, engine))
     # run_polling handles SIGINT/SIGTERM, swallows KeyboardInterrupt and closes the HTTP
     # session, so Ctrl+C stops the bot cleanly without a traceback.

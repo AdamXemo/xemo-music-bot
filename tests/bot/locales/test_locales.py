@@ -63,3 +63,15 @@ def test_copy_contains_no_unicode_emoji(texts: Texts) -> None:
             continue
         value = getattr(texts, field.name)
         assert not [char for char in value if unicodedata.category(char) == "So"], field.name
+
+
+@pytest.mark.parametrize("texts", [EN, UK, RU])
+def test_profile_texts_fit_telegrams_limits(texts: Texts) -> None:
+    assert len(texts.bot_short_description) <= 120
+    assert len(texts.bot_description) <= 512
+
+
+@pytest.mark.parametrize("texts", [EN, UK, RU])
+def test_command_descriptions_fit_telegrams_limits(texts: Texts) -> None:
+    for description in (texts.cmd_start, texts.cmd_language):
+        assert 1 <= len(description) <= 256, description

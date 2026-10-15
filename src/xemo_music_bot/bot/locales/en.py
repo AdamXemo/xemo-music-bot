@@ -9,4 +9,12 @@ EN = Texts(
     language_name="English",
     language_prompt="Choose a language",
     language_set="Language set to English",
+    cmd_start="Start the bot",
+    cmd_language="Change language",
+    bot_short_description="Private music bot for a circle of friends. Invite only",
+    bot_description=(
+        "Send a track name, pick it from the list and get the audio right in the chat"
+        "\n\n"
+        "This bot is private: ask @Xemo999 for an invite"
+    ),
 )
