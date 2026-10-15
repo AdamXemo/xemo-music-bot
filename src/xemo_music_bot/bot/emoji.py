@@ -26,6 +26,21 @@ class CustomEmoji:
 HELLO: Final[CustomEmoji | None] = None
 """In front of the welcome text."""
 
+TRACK: Final[CustomEmoji | None] = None
+"""Icon of every track button in the results list."""
+
+
+def button_icon(slot: CustomEmoji | None) -> str | None:
+    """Return the ID to put in a button's ``icon_custom_emoji_id``.
+
+    Args:
+        slot: The slot to render; buttons take the ID alone, without the ``alt`` emoji.
+
+    Returns:
+        The slot's emoji ID, or ``None`` for an empty slot, which leaves the button plain.
+    """
+    return None if slot is None else slot.emoji_id
+
 
 def with_emoji(slot: CustomEmoji | None, html: str) -> str:
     """Put the slot's emoji in front of HTML message text.
