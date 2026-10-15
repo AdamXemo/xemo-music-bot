@@ -48,3 +48,21 @@ def test_0003_gives_existing_users_english(alembic_config: Config, database_url:
             run_sql(database_url, "DELETE FROM users")
         finally:
             command.upgrade(alembic_config, "head")
+
+
+def test_0004_existing_users_have_not_chosen(alembic_config: Config, database_url: str) -> None:
+    command.upgrade(alembic_config, "head")
+    command.downgrade(alembic_config, "0003")
+    try:
+        # Their stored language may still be Telegram's guess, so they see the picker once.
+        run_sql(database_url, "INSERT INTO users (tg_id) VALUES (1)")
+        command.upgrade(alembic_config, "0004")
+
+        assert run_sql(database_url, "SELECT language_chosen FROM users") == [False]
+    finally:
+        # Other tests expect an empty table at head, so head is restored even if the
+        # cleanup fails.
+        try:
+            run_sql(database_url, "DELETE FROM users")
+        finally:
+            command.upgrade(alembic_config, "head")

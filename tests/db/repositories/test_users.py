@@ -33,17 +33,19 @@ async def test_create_stores_user_with_defaults(
         created.tg_id,
         created.username,
         created.language,
+        created.language_chosen,
         created.role,
         created.invited_by,
-    ) == (2, "friend", "uk", "user", 1)
+    ) == (2, "friend", "uk", False, "user", 1)
     assert created.created_at is not None
     assert await users.get(2) is created
     session.expunge_all()  # read back from Postgres, not the identity map
     user = await users.get(2)
     assert user is not None
-    assert (user.username, user.language, user.role, user.invited_by) == (
+    assert (user.username, user.language, user.language_chosen, user.role, user.invited_by) == (
         "friend",
         "uk",
+        False,
         "user",
         1,
     )
@@ -107,7 +109,7 @@ async def test_every_supported_language_is_accepted(
     assert created.language == language
 
 
-async def test_set_language_updates_the_stored_row(
+async def test_set_language_updates_the_stored_row_and_marks_it_chosen(
     users: UsersRepository, session: AsyncSession
 ) -> None:
     await users.create(1, "friend", "en")
@@ -115,11 +117,11 @@ async def test_set_language_updates_the_stored_row(
     updated = await users.set_language(1, "ru")
 
     assert updated is not None
-    assert updated.language == "ru"
+    assert (updated.language, updated.language_chosen) == ("ru", True)
     session.expunge_all()
     user = await users.get(1)
     assert user is not None
-    assert user.language == "ru"
+    assert (user.language, user.language_chosen) == ("ru", True)
 
 
 async def test_set_language_refreshes_the_user_already_in_the_session(
@@ -131,7 +133,7 @@ async def test_set_language_refreshes_the_user_already_in_the_session(
 
     # The middleware's db_user must not keep serving the old catalog after a switch.
     assert db_user is not None
-    assert db_user.language == "uk"
+    assert (db_user.language, db_user.language_chosen) == ("uk", True)
 
 
 async def test_set_language_returns_none_for_unknown_user(users: UsersRepository) -> None:
