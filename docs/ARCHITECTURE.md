@@ -86,8 +86,11 @@ tests/                   # mirrors src/ layout
 ### Delivery (tap a track)
 1. `DeliveryService.get_audio(track_ref)` checks `tracks.tg_file_id`.
 2. **Hit** → send by `file_id` instantly (no download, no upload).
-3. **Miss** → acquire download semaphore → yt-dlp into a temp dir (in a thread) →
-   `sendAudio` with metadata + cover → store returned `file_id` → delete temp file.
+3. **Miss** → `async with provider.download(track) as audio` (download semaphore, then
+   yt-dlp into a temp dir in a thread, converted to MP3; the dir is removed when the block
+   exits, however it exits) → `sendAudio` with metadata + cover → store returned `file_id`.
+   The provider refuses over-long tracks before downloading (`TooLongError`), files over
+   50 MB (`TooLargeError`) and Go+ previews or DRM-locked tracks (`PreviewOnlyError`).
 4. Concurrent requests for the same track await the same in-flight download.
 
 ### Access

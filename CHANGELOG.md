@@ -7,6 +7,11 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Provider download: `MusicProvider.download()` is an async context manager that fetches a
+  SoundCloud track as MP3 (copied if SoundCloud serves MP3, else converted at 192 kbps)
+  into a temp dir that is always removed; refuses tracks over about 34 minutes, files over
+  50 MB and Go+ previews or DRM-locked tracks (`TooLongError`, `TooLargeError`,
+  `PreviewOnlyError`); 3 minute timeout, 2 downloads at a time. Not wired to the bot yet.
 - Search UX: any text message searches and gets one results message with a button per
   track and a pager (`‹ Back`, counter, `Next ›`) that edits the message; replies for no
   results, a failing source, long queries, links, non-text messages and unknown

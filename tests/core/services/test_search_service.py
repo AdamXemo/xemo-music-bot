@@ -1,7 +1,9 @@
+from contextlib import AbstractAsyncContextManager
+
 import pytest
 from redis.asyncio import Redis
 
-from xemo_music_bot.core.models import SearchSession, Track
+from xemo_music_bot.core.models import DownloadedAudio, SearchSession, Track
 from xemo_music_bot.core.services.search import SearchService, SearchSessionExpiredError
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
 from xemo_music_bot.providers.base import ProviderError
@@ -30,6 +32,9 @@ class FakeProvider:
         if self.error is not None:
             raise self.error
         return self.tracks[:limit]
+
+    def download(self, track: Track) -> AbstractAsyncContextManager[DownloadedAudio]:
+        raise AssertionError("Search must not download")
 
 
 @pytest.fixture
