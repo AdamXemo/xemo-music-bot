@@ -28,6 +28,18 @@ Verified on aiogram 3.31.0 (Bot API 10.3), 2026-10-10:
 - Review feedback (2026-10-12, i18n 1/2a): seed EVERY row's stored language different from the
   Telegram language the tests send (blocked rows too), so each test shows which one a reply used;
   CHANGELOG lines name the roadmap item ("i18n 1/2"), never PR-split jargon like "1/2a".
+- CallbackData (3.31): a `Literal`/StrEnum field validates on `unpack`; `CallbackQueryFilter`
+  catches TypeError/ValueError (pydantic ValidationError is one), so forged data just matches
+  no handler (no answer, no DB write). A field-less subclass packs to the bare prefix.
+- `TelegramBadRequest.message` holds Telegram's description ("message is not modified" check).
+  To fake an API error, monkeypatch `bot.session.make_request` with `(bot, method, **kwargs)`:
+  `BaseSession.__call__` passes `timeout=` by keyword. `feed_update` re-raises handler errors.
+- `Message.edit_text(text, inline_message_id, ...)`: pass `reply_markup=` by keyword;
+  omitting it removes the inline keyboard.
+- `Router._propagate_event` tries the router's OWN handlers before its sub-routers, so a
+  catch-all registered on the dispatcher would shadow every feature router; the repo's
+  catch-all callback lives in `handlers/fallback.py`, included last (review ask 2026-10-15:
+  every callback must be answered, unrecognised ones too).
 - `str.split()` on whitespace-only text (e.g. chr(160)) returns `[]`; guard before `[0]`.
 - Handler tests: `dispatcher.feed_update(bot, Update(...))` with a `BaseSession` subclass
   that records `make_request` calls (see `tests/bot/handlers/test_start.py`). Ruff flags the

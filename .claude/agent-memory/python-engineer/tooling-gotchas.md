@@ -11,7 +11,7 @@ metadata:
   and any inline command containing the word "commit", e.g. a sed pattern). Scripts
   written to the scratchpad and run with `bash script.sh` pass. **How to apply:** read files
   with the Read tool, write scratch scripts with Write, keep git commands simple.
-- `–` / `—` escapes written into Python files came out as literal en/em dashes
+- The en dash / em dash escapes written into Python files came out as literal dashes
   (ruff RUF001 caught it). **How to apply:** after writing code or tests that mention
   dashes, grep for `[\x{2013}\x{2014}]` and fix with
   `sed -i 's/\xe2\x80\x93/\\u2013/g; s/\xe2\x80\x94/\\u2014/g'`.
@@ -31,6 +31,12 @@ metadata:
 - Budget: tests run about 2x production lines here (DB + dispatcher tests, parametrize).
   Estimate tests explicitly before starting; Access control came to ~710 lines vs 420;
   i18n 1/2a came to ~415 vs a 310 estimate (signature change touched ~20 test call sites).
+  i18n 1/2b came to ~580 vs a 300 brief (prod ~270, tests ~290): a handler + keyboard PR
+  with DB-backed dispatcher tests is ~2x its production lines; say so up front.
+- RUF001 also flags the Ukrainian conjunction "і" and the all-look-alike Russian "его";
+  same fix as "у" (line noqa + ASCII why-comment). A locales per-file ignore is a follow-up.
+- Mutation-test "uses the new language": since UPDATE..RETURNING refreshes `db_user` in the
+  identity map, `db_user.language` is new after the save; the real bug is the injected `texts`.
 - The hook also blocked a `python3 -c` multi-line file rewrite and a chained
   `git status && git diff --stat && grep ...`; use Edit, and run git commands on their own.
 - The Bash hook also blocked a `python3 - <<'X'` heredoc and a `for f in ...; cat -n` loop;

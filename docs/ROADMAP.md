@@ -44,17 +44,18 @@ and Russian. Keep everything else as simple as it can be.
       `admin_ids` from config (the only source of admin rights; drop `'admin'` from the
       `users.role` CHECK), and their `users` row is created on their first update;
       private chats only, for everyone
-- [ ] i18n 1/2: `users.language` + migration (NOT NULL, server default `'en'`, which
+- [x] i18n 1/2: `users.language` + migration (NOT NULL, server default `'en'`, which
       backfills admin rows created before it; new rows get the language from Telegram),
-      user's catalog via middleware, welcome with language button, picker, `/language`
+      user's catalog via middleware, `/start` shows the language picker until a pick
+      (`users.language_chosen`) and then only the welcome, `/language`
       (testable by the admin before invites exist).
       The `bot/locales/` catalogs (en, uk, ru) per ADR 0005 already landed with the
       hello-world bot
 - [ ] i18n 2/2: localized command menu per language, admin chat-scope commands, bot
       description and short description per language at startup
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
-      a code; `/start <code>` creates the user with `language` from Telegram and welcomes
-      them; short spec for admin replies first
+      a code; `/start <code>` creates the user with `language` from Telegram and shows the
+      language picker, then the welcome; short spec for admin replies first
 - [ ] Revocation: `/revoke <code>` and `/ban <user>` (admin); `role = 'blocked'` is
       rejected by the access middleware; config admins cannot be banned
 - [x] Provider interface (`MusicProvider`) + SoundCloud provider: search
@@ -98,7 +99,7 @@ Goal: browse your own public SoundCloud library inside the bot.
 - [ ] Inline mode: `@xemo_music_bot query` in any chat
 - [ ] YouTube provider behind a feature flag
 - [ ] In-bot favourites and recent history
-- [ ] Per-user settings (default source, audio quality)
+- [ ] Settings screen (absorbs `/language`): per-user settings (default source, audio quality)
 
 ## Phase 5 - Mini App 💤 → `v1.0.0`
 

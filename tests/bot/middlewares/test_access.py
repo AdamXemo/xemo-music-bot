@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 from aiogram import Bot, Dispatcher
-from aiogram.methods import SendMessage, TelegramMethod
+from aiogram.methods import AnswerCallbackQuery, SendMessage, TelegramMethod
 from aiogram.types import CallbackQuery, Chat, Message, TelegramObject, Update, User
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, async_sessionmaker
@@ -107,14 +107,15 @@ async def test_blocked_user_start_gets_private_bot_line(
     assert request.text == EN.private_bot
 
 
-async def test_member_start_is_greeted_in_the_stored_language(
+async def test_member_start_is_answered_in_the_stored_language(
     bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
 ) -> None:
     await dispatcher.feed_update(bot, make_update("/start", MEMBER_ID, language_code="ru"))
 
     [request] = sent_requests
     assert isinstance(request, SendMessage)
-    assert request.text == UK.greeting
+    # The first-run picker, since the seeded rows have not picked a language yet.
+    assert request.text == UK.language_prompt
 
 
 async def test_config_admin_first_start_creates_row_and_reaches_the_handler(
@@ -127,7 +128,7 @@ async def test_config_admin_first_start_creates_row_and_reaches_the_handler(
 
     [request] = sent_requests
     assert isinstance(request, SendMessage)
-    assert request.text == EN.greeting
+    assert request.text == EN.language_prompt
     role = await connection.scalar(select(DbUser.role).where(DbUser.tg_id == ADMIN_ID))
     assert role == "user"
 
@@ -144,6 +145,24 @@ async def test_group_messages_are_ignored_without_a_query(
     await offline_dispatcher.feed_update(bot, make_update("/start", user_id, chat_type=chat_type))
 
     assert sent_requests == []
+
+
+async def test_group_callback_is_answered_without_text_or_a_query(
+    bot: Bot, sent_requests: list[TelegramMethod[Any]], offline_dispatcher: Dispatcher
+) -> None:
+    sender = User(id=ADMIN_ID, is_bot=False, first_name="Friend")
+    message = Message(
+        message_id=1, date=datetime.now(UTC), chat=Chat(id=GROUP_ID, type="group"), text="old"
+    )
+    callback = CallbackQuery(
+        id="1", from_user=sender, chat_instance="1", message=message, data="language_picker"
+    )
+
+    await offline_dispatcher.feed_update(bot, Update(update_id=1, callback_query=callback))
+
+    [answer] = sent_requests
+    assert isinstance(answer, AnswerCallbackQuery)
+    assert answer.text is None
 
 
 async def test_update_without_sender_is_ignored_without_a_query(
@@ -195,7 +214,12 @@ async def test_allowed_sender_reaches_handler_with_row_admin_flag_and_texts(
 @pytest.mark.parametrize("kind", ["message", "edited_message", "callback_query"])
 @pytest.mark.parametrize("user_id", [STRANGER_ID, BLOCKED_ID])
 async def test_denied_sender_never_reaches_a_handler(
-    seeded: None, session: AsyncSession, user_id: int, kind: str
+    bot: Bot,
+    sent_requests: list[TelegramMethod[Any]],
+    seeded: None,
+    session: AsyncSession,
+    user_id: int,
+    kind: str,
 ) -> None:
     sender = User(id=user_id, is_bot=False, first_name="Friend")
     chat = Chat(id=user_id, type="private")
@@ -214,7 +238,9 @@ async def test_denied_sender_never_reaches_a_handler(
     else:
         # A callback query without its message carries no chat.
         del data["event_chat"]
-        callback = CallbackQuery(id="1", from_user=sender, chat_instance="1")
+        # Bound by hand: only the dispatcher binds updates to a bot, and the deny path
+        # answers the callback through it.
+        callback = CallbackQuery(id="1", from_user=sender, chat_instance="1").as_(bot)
         update = Update(update_id=1, callback_query=callback)
     calls: list[TelegramObject] = []
 
@@ -225,3 +251,10 @@ async def test_denied_sender_never_reaches_a_handler(
 
     assert result is None
     assert calls == []
+    if kind == "callback_query":
+        # Answered without text, so an old button stops spinning; nothing else is sent.
+        [answer] = sent_requests
+        assert isinstance(answer, AnswerCallbackQuery)
+        assert answer.text is None
+    else:
+        assert sent_requests == []
