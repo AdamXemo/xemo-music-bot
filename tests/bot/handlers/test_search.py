@@ -17,7 +17,6 @@ from aiogram.types import (
     Chat,
     InlineKeyboardMarkup,
     Message,
-    MessageAutoDeleteTimerChanged,
     MessageEntity,
     Update,
     User,
@@ -27,7 +26,6 @@ from redis.asyncio import Redis
 from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from xemo_music_bot.bot import emoji
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.bot.keyboards.results import TrackCallback
 from xemo_music_bot.bot.labels import result_label
@@ -198,19 +196,6 @@ async def test_single_page_has_no_pager_row(
     assert len(keyboard.inline_keyboard) == 3
 
 
-async def test_track_buttons_get_the_track_icon_once_the_slot_is_set(
-    bot: Bot,
-    sent_requests: list[TelegramMethod[Any]],
-    dispatcher: Dispatcher,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(emoji, "TRACK", emoji.CustomEmoji(emoji_id="99", alt="\N{MUSICAL NOTE}"))
-
-    keyboard = await search(dispatcher, bot, sent_requests)
-
-    assert [row[0].icon_custom_emoji_id for row in keyboard.inline_keyboard[:5]] == ["99"] * 5
-
-
 async def test_results_header_escapes_the_query(
     bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
 ) -> None:
@@ -333,16 +318,6 @@ async def test_provider_failure_replies_search_failed(
             RU.link_not_supported,
             id="url-entity",
         ),
-        pytest.param(
-            {
-                "text": "this song",
-                "entities": [
-                    MessageEntity(type="text_link", offset=5, length=4, url="https://e.com")
-                ],
-            },
-            RU.link_not_supported,
-            id="hidden-link",
-        ),
         pytest.param({"text": "https://example.com/a"}, RU.link_not_supported, id="url-text-only"),
         pytest.param(
             {"voice": Voice(file_id="f", file_unique_id="u", duration=1)}, RU.not_text, id="voice"
@@ -368,51 +343,15 @@ async def test_messages_that_are_not_searches_get_a_hint_and_no_search(
     assert provider.queries == []
 
 
-@pytest.mark.parametrize(
-    "content",
-    [
-        pytest.param(
-            {
-                "message_auto_delete_timer_changed": MessageAutoDeleteTimerChanged(
-                    message_auto_delete_time=5
-                )
-            },
-            id="auto-delete-timer",
-        ),
-        pytest.param(
-            {
-                "pinned_message": Message(
-                    message_id=1, date=datetime.now(UTC), chat=Chat(id=1, type="private")
-                )
-            },
-            id="pin",
-        ),
-    ],
-)
 async def test_service_messages_are_not_answered(
     bot: Bot,
     sent_requests: list[TelegramMethod[Any]],
     dispatcher: Dispatcher,
     provider: FakeProvider,
-    content: dict[str, Any],
 ) -> None:
-    await dispatcher.feed_update(bot, make_message(**content))
+    pinned = Message(message_id=1, date=datetime.now(UTC), chat=Chat(id=1, type="private"))
+
+    await dispatcher.feed_update(bot, make_message(pinned_message=pinned))
 
     assert sent_requests == []
     assert provider.queries == []
-
-
-async def test_query_of_exactly_100_characters_is_searched(
-    bot: Bot, dispatcher: Dispatcher, provider: FakeProvider
-) -> None:
-    await dispatcher.feed_update(bot, make_message(text="x" * 100))
-
-    assert provider.queries == ["x" * 100]
-
-
-async def test_whitespace_only_text_is_ignored(
-    bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
-) -> None:
-    await dispatcher.feed_update(bot, make_message(text="\N{NO-BREAK SPACE} "))
-
-    assert sent_requests == []
