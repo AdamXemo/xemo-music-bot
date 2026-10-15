@@ -24,5 +24,14 @@ Verified on yt-dlp 2026.8.19, 2026-10-10:
   30.0, format_id ends with `preview`) or raise `DownloadError` "This video is DRM protected"
   (flat search shows the full duration for these). A progress hook raising
   `DownloadCancelled` stops a running download from another thread's event.
+- Covers (verified 2026-10-15, real download): full extraction exposes no separate
+  avatar; `thumbnails` is artwork else avatar. `writethumbnail` tries the LAST (best,
+  `original` has preference 10) first, falls back on fetch errors, and sets
+  `thumb["filepath"]` on the top-level `info["thumbnails"]` entry. To narrow sizes:
+  `extract_info(url, download=False, process=False)`, edit `thumbnails`, then
+  `process_ie_result(info, download=True)` (processing errors then arrive unwrapped,
+  e.g. raw ExtractorError, still YoutubeDLError).
+- Pillow 12.3 has py.typed; `getpixel` returns a union (narrow with isinstance);
+  `Image.new("I;16")` PNG converts to RGB fine; ruff S311 flags `random.Random` in tests.
 - Errors surface as `yt_dlp.utils.DownloadError` (subclass of `YoutubeDLError`).
 - `logger` option takes a stdlib `logging.Logger`; info and debug both go to `.debug`.

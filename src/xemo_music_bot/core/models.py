@@ -48,11 +48,14 @@ class DownloadedAudio:
         path: The MP3 file.
         duration: Length of the audio in whole seconds.
         size: File size in bytes, already checked against Telegram's upload limit.
+        thumbnail: The cover as a JPEG that meets Telegram's thumbnail rules, always set:
+            in the download's directory, or the bundled default cover (never delete it).
     """
 
     path: Path
     duration: int
     size: int
+    thumbnail: Path
 
 
 @dataclass(slots=True, frozen=True)

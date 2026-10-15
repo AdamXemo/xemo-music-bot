@@ -11,6 +11,7 @@ dependencies = [
     "aiogram>=3.31.0",
     "alembic>=1.20.0",
     "asyncpg>=0.32.0",
+    "pillow>=12.3.0",
     "pydantic-settings>=2.15.0",
     "redis>=8.1.0",
     "sqlalchemy[asyncio]>=2.1.4",
@@ -78,7 +79,7 @@ python_version = "3.13"
 strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
-files = ["src", "tests", "migrations"]
+files = ["src", "tests", "migrations", "scripts"]
 # Name modules by path (tests.db.test_session) so same-named files in different test
 # folders do not clash; src is the base for the package itself.
 mypy_path = "src"
