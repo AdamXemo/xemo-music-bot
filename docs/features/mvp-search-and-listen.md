@@ -337,7 +337,7 @@ matches the audio player); track buttons use `result_label` instead.
 - "Has the user picked a language yet" is the one new piece of state (yes or no; any
   pick from any picker sets it). Storage is db-architect's. UX has no preference for
   users who existed before this change: not asking them again is fine.
-- Any pick, the first one included, sets that user's chat-scope commands (below; lands
+- Any pick, the first one included, sets that user's chat-scope commands (below; landed
   with i18n 2/2).
 - Track buttons: one per row, callback data `<session_id>:<index>` as in ARCHITECTURE,
   `icon_custom_emoji_id` from the `track` slot when set, no `style`.
@@ -350,8 +350,9 @@ matches the audio player); track buttons use `result_label` instead.
   the search session; no new tables.
 - Commands: `setMyCommands` per `language_code` (en, uk, ru) for the default scope. When
   a user changes language, also set that user's chat-scope commands in the chosen
-  language. For admins the chat scope includes the admin commands. Bot description and
-  short description are set per language at startup.
+  language. For admins the chat scope includes the admin commands (each admin command
+  is added by the item that builds it; until then every menu is the same). Bot
+  description and short description are set per language at startup.
 - Language detection: a `language_code` whose primary subtag is `uk` or `ru` maps to it
   (`uk-UA` -> uk); else `en`.
 - `sendAudio` on a cache miss: `performer` and `title` (cleaned), `duration` in seconds,

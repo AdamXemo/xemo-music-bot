@@ -51,13 +51,17 @@ and Russian. Keep everything else as simple as it can be.
       (testable by the admin before invites exist).
       The `bot/locales/` catalogs (en, uk, ru) per ADR 0005 already landed with the
       hello-world bot
-- [ ] i18n 2/2: localized command menu per language, admin chat-scope commands, bot
-      description and short description per language at startup
+- [x] i18n 2/2: localized command menu per language, chat-scope commands (admins at
+      startup, any user on a language pick), bot description and short description per
+      language at startup. The menu lists only the commands that exist (`/start`,
+      `/language`); `/help`, `/invite`, `/revoke` and `/ban` add their own entries
 - [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
-      a code; `/start <code>` creates the user with `language` from Telegram and shows the
-      language picker, then the welcome; short spec for admin replies first
+      a code and is added to the admin menu; `/start <code>` creates the user with
+      `language` from Telegram and shows the language picker, then the welcome; short spec
+      for admin replies first
 - [ ] Revocation: `/revoke <code>` and `/ban <user>` (admin); `role = 'blocked'` is
-      rejected by the access middleware; config admins cannot be banned
+      rejected by the access middleware; config admins cannot be banned; adds both to the
+      admin menu
 - [x] Provider interface (`MusicProvider`) + SoundCloud provider: search
 - [ ] Redis: client from config, search session cache (results, page and loading set
       under a short id with TTL)

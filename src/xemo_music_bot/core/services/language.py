@@ -1,5 +1,7 @@
 """Change the language the bot speaks to a user (ADR 0005)."""
 
+from collections.abc import Collection
+
 from xemo_music_bot.core.models import Language
 from xemo_music_bot.db.models import User
 from xemo_music_bot.db.repositories.users import UsersRepository
@@ -14,6 +16,14 @@ class LanguageService:
 
     def __init__(self, users: UsersRepository) -> None:
         self._users = users
+
+    async def get_languages(self, tg_ids: Collection[int]) -> dict[int, Language]:
+        """Return the stored language of each given user who has a row.
+
+        Args:
+            tg_ids: Telegram user IDs; those without a row are left out of the result.
+        """
+        return await self._users.get_languages(tg_ids)
 
     async def set_language(self, tg_id: int, language: Language) -> User:
         """Store ``language`` as the user's language.

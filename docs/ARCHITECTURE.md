@@ -33,6 +33,7 @@ src/xemo_music_bot/
 ├── logging_setup.py     # root logger configuration, called once at startup
 ├── bot/
 │   ├── dispatcher.py    # build_dispatcher(): attaches every feature router
+│   ├── commands.py      # command menu and bot descriptions: startup hook, per-user chat menu
 │   ├── emoji.py         # custom emoji slots (UX guide); empty until the owner picks ids
 │   ├── handlers/        # one router per feature: start, language, search, library, admin; fallback last
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
@@ -46,7 +47,7 @@ src/xemo_music_bot/
 │   ├── metadata.py      # clean performer and title from raw provider metadata
 │   └── services/        # search, delivery, access, library
 │       ├── access.py    # AccessService: admin / member / blocked / stranger
-│       └── language.py  # LanguageService: change a user's language
+│       └── language.py  # LanguageService: change and read users' languages
 ├── providers/
 │   ├── base.py          # MusicProvider protocol
 │   ├── soundcloud.py

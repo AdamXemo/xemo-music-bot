@@ -1,6 +1,8 @@
 """Reads and writes rows of the ``users`` table."""
 
-from sqlalchemy import update
+from collections.abc import Collection
+
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +23,15 @@ class UsersRepository:
     async def get(self, tg_id: int) -> User | None:
         """Return the user with this Telegram ID, or ``None`` if they never joined."""
         return await self._session.get(User, tg_id)
+
+    async def get_languages(self, tg_ids: Collection[int]) -> dict[int, Language]:
+        """Return the stored language of each given user who has a row, in one query.
+
+        Args:
+            tg_ids: Telegram user IDs; those without a row are left out of the result.
+        """
+        statement = select(User.tg_id, User.language).where(User.tg_id.in_(tg_ids))
+        return {row.tg_id: row.language for row in await self._session.execute(statement)}
 
     async def create(
         self,

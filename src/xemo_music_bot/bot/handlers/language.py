@@ -1,10 +1,11 @@
 """The language picker's taps and `/language` (the first-run picker is sent by `/start`)."""
 
-from aiogram import Router
+from aiogram import Bot, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from xemo_music_bot.bot.commands import set_user_commands
 from xemo_music_bot.bot.handlers.edits import edit_tapped_message
 from xemo_music_bot.bot.handlers.start import welcome_text
 from xemo_music_bot.bot.keyboards.language import (
@@ -35,8 +36,9 @@ async def handle_pick_language(
     callback_data: PickLanguageCallback,
     db_user: User,
     session: AsyncSession,
+    bot: Bot,
 ) -> None:
-    """Store the picked language and edit the picker into a reply in that language.
+    """Store the picked language, edit the picker into a reply in it and update the menu.
 
     Picking the current language is handled like a change.
 
@@ -45,6 +47,7 @@ async def handle_pick_language(
         callback_data: The parsed button data.
         db_user: The sender's row, injected by ``AccessMiddleware``.
         session: The update's session, injected by ``DbSessionMiddleware``.
+        bot: The bot, injected by aiogram.
     """
     # Answered first, so a failed save cannot leave the button spinning.
     await callback.answer()
@@ -58,6 +61,8 @@ async def handle_pick_language(
         await edit_tapped_message(callback, welcome_text(texts))
     else:
         await edit_tapped_message(callback, texts.language_set)
+    # After the edit, so a failed edit (which rolls the pick back) leaves the menu alone.
+    await set_user_commands(bot, user.tg_id, user.language)
 
 
 def build_router() -> Router:

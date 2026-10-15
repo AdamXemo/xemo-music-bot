@@ -18,6 +18,10 @@ class Texts:
         language_name: The language's own name, after the flag on its picker button.
         language_prompt: Text of the language picker.
         language_set: Confirmation after picking a language from `/language`.
+        cmd_start: Description of `/start` in the command menu.
+        cmd_language: Description of `/language` in the command menu.
+        bot_short_description: Short description on the bot's profile (Telegram limit 120).
+        bot_description: Description shown in an empty chat with the bot (Telegram limit 512).
     """
 
     private_bot: str
@@ -26,3 +30,7 @@ class Texts:
     language_name: str
     language_prompt: str
     language_set: str
+    cmd_start: str
+    cmd_language: str
+    bot_short_description: str
+    bot_description: str

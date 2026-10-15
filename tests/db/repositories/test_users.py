@@ -152,3 +152,14 @@ async def test_deleting_inviter_keeps_invited_user(
     user = await users.get(2)
     assert user is not None
     assert user.invited_by is None
+
+
+async def test_get_languages_returns_stored_languages_of_existing_users_only(
+    users: UsersRepository,
+) -> None:
+    await users.create(1, "a", "uk")
+    await users.create(2, "b", "ru")
+    await users.create(3, "c", "en")
+
+    assert await users.get_languages({1, 2, 99}) == {1: "uk", 2: "ru"}
+    assert await users.get_languages(set()) == {}
