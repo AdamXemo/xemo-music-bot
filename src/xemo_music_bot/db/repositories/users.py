@@ -60,10 +60,11 @@ class UsersRepository:
         return await self._session.scalar(statement)
 
     async def set_language(self, tg_id: int, language: Language) -> User | None:
-        """Change the user's language in one atomic UPDATE.
+        """Change the user's language in one atomic UPDATE and mark it as chosen.
 
-        The ORM also applies the new value to the user's object if this session already
-        holds it, so a ``db_user`` loaded earlier in the same update stays current.
+        Every call is the user's own pick, so it also sets ``language_chosen``. The ORM
+        applies the new values to the user's object if this session already holds it, so
+        a ``db_user`` loaded earlier in the same update stays current.
 
         Args:
             tg_id: Telegram user ID.
@@ -73,6 +74,9 @@ class UsersRepository:
             The updated user, or ``None`` if no user has this Telegram ID.
         """
         statement = (
-            update(User).where(User.tg_id == tg_id).values(language=language).returning(User)
+            update(User)
+            .where(User.tg_id == tg_id)
+            .values(language=language, language_chosen=True)
+            .returning(User)
         )
         return (await self._session.scalars(statement)).one_or_none()

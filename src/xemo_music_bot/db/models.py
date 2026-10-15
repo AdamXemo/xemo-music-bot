@@ -2,7 +2,16 @@
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, MetaData, Text, func
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    MetaData,
+    Text,
+    false,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from xemo_music_bot.core.models import Language
@@ -54,3 +63,5 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     # Explicit Text: SQLAlchemy would otherwise map the Literal to a native ENUM type.
     language: Mapped[Language] = mapped_column(Text, server_default="en")
+    # False until the user picks a language; until then `language` is a default or a guess.
+    language_chosen: Mapped[bool] = mapped_column(server_default=false())
