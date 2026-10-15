@@ -29,37 +29,42 @@ Other messages from strangers are ignored.
 ### 2. Joining with an invite (`/start <code>`)
 
 1. Valid code: the user is created with the language taken from Telegram's
-   `language_code` (`uk` -> uk, `ru` -> ru, anything else -> en). The bot sends the welcome.
+   `language_code` (`uk` -> uk, `ru` -> ru, anything else -> en). The bot sends the
+   language picker.
 2. Invalid, used up, expired or revoked code: `invite_invalid`, no keyboard, in the
    detected language.
-3. A member who sends `/start` (with or without a code) gets the welcome again.
+3. Any allowed user (member or admin) who sends `/start`, with or without a code: the
+   picker if no language has been picked yet, otherwise the welcome.
+
+**First-run picker.** A new message. The prompt is in the stored language (the detected
+one until a pick). The stored language has `style: primary`. Each button is the flag, a
+space and the name, so it reads the same whatever the prompt language.
+
+```
+┌──────────────────────────────────────────────┐
+│ Choose a language.                           │
+│ [ 🇬🇧 English ] [ 🇺🇦 Українська ] [ 🇷🇺 Русский ] │
+└──────────────────────────────────────────────┘
+```
+
+Tapping a language saves it and edits the same message into the welcome in that
+language (no confirmation line; the welcome in the new language is the confirmation).
+The callback is answered without text.
+
+**Welcome.** No keyboard. Sent as a new message on every later `/start`.
 
 ```
 ┌──────────────────────────────────────────────┐
 │ [e:hello] Send me a track name and I'll      │
 │ find it.                                     │
-│ [ [e:language] Language: English           ] │
 └──────────────────────────────────────────────┘
 ```
-
-Tapping the language button edits the same message into the picker. The current language
-has `style: primary`. `language_prompt` is shown in the stored language (assumed default,
-2026-10-13).
-
-```
-┌──────────────────────────────────────────────┐
-│ Choose a language.                           │
-│ [ English ]  [ Українська ]  [ Русский ]     │
-└──────────────────────────────────────────────┘
-```
-
-Tapping a language saves it and edits the message back to the welcome in that language.
-The callback is answered without text.
 
 ### 3. `/language`
 
-Sends the picker above as a new message. Tapping a language saves it and edits the
-message to `language_set` (no keyboard), written in the new language.
+The quiet way to switch later, until a Settings screen absorbs it (later roadmap item,
+not this one). Sends the same picker as a new message. Tapping a language saves it and
+edits the message to `language_set` (no keyboard), written in the new language.
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -175,7 +180,12 @@ in the results list, the audio and the `tracks` cache:
 | Progress | Tapped track button becomes a disabled loading button, plus chat action | Owner, 2026-10-10 |
 | Label budget | 32 characters, artist kept only if 5+ characters of it fit | Assumed default |
 | Loading button text | "Loading…" with the `loading` icon, instead of the track label | Assumed default |
-| Onboarding | Welcome in the detected language with a language button; no extra step | Owner, 2026-10-10 |
+| Onboarding | First `/start`: language picker, then the welcome in the chosen language. Later `/start`: welcome only | Owner, 2026-10-15 (replaces 2026-10-10) |
+| Welcome keyboard | None; the "Language: ..." button is removed | Owner, 2026-10-15 |
+| First-run pick | Edits the picker message into the welcome; no `language_set` line | Assumed default, 2026-10-15 |
+| First-run prompt | `language_prompt` in the detected language, one line | Assumed default, 2026-10-15 |
+| Until a language is picked | Every `/start` sends the picker again; search and other commands work in the detected language | Assumed default, 2026-10-15 |
+| `/language` | Stays as the quiet way to switch; a later Settings screen absorbs it | Owner, 2026-10-15 |
 | Too-long tracks | Shown normally; a tap shows a short alert | Owner, 2026-10-10 |
 | Results header | Only the query, in bold; no "Results for" | Assumed default |
 | Welcome text | One line | Assumed default |
@@ -190,15 +200,15 @@ in the results list, the audio and the `tracks` cache:
 | Search trigger | Any plain text message (not a command) | Assumed default |
 | Commands | `/start`, `/help`, `/language`; admins also see `/invite`, `/revoke`, `/ban` | Assumed default |
 | Strangers | Only `/start` gets a reply; everything else is ignored | Assumed default |
-| Language picker | Names in their own language, no flags; current one `primary` | Assumed default |
+| Language picker | `🇬🇧 English`, `🇺🇦 Українська`, `🇷🇺 Русский` (flag, space, name) in one row; stored one `primary` | Owner, 2026-10-15 (flags); `primary` assumed default |
+| Picker row too wide | If a phone cuts a label, the three buttons stack one per row | Assumed default, 2026-10-15 |
 | Download failure | Short new message, the track button is restored; tapping it retries | Assumed default |
 | Query length | Over 100 characters is rejected with a hint | Assumed default |
-| Picking the current language | Same as a change: the welcome picker edits back to the same welcome; the `/language` picker shows `language_set`. No toast, no special copy | Owner-approved default, 2026-10-12 |
-| Back from the welcome picker | No Back button; picking the current language is the way back | Owner-approved default, 2026-10-12 |
-| Language callbacks | Stateless (language code and origin only); work on any old message, no expiry | Owner-approved default, 2026-10-12 |
+| Picking the current language | Same as a change: the first-run picker edits into the welcome; the `/language` picker shows `language_set`. No toast, no special copy | Owner-approved default, 2026-10-12 |
+| Language callbacks | Stateless (language code and origin: first run or `/language`); work on any old message, no expiry | Owner-approved default, 2026-10-12 |
 | Language source | Allowed updates use `users.language`; strangers and blocked users get Telegram's `language_code` | Owner-approved default, 2026-10-12 |
 | Denied callbacks | Taps from strangers, blocked users or groups are answered without text; nothing is edited | Assumed default, 2026-10-13 |
-| Picker prompt language | `language_prompt` in the stored language | Assumed default, 2026-10-13 |
+| Picker prompt language | `language_prompt` in the stored language (the detected one until a pick) | Assumed default, 2026-10-13 |
 | Welcome before Search UX ships | Uses the final `welcome` copy; only the admin sees it before invites exist | Owner, 2026-10-12 |
 
 ## Copy
@@ -212,10 +222,10 @@ matches the audio player); track buttons use `result_label` instead.
 | private_bot | This bot is private. To join, ask a friend who uses it for an invite. | Це приватний бот. Щоб приєднатися, попросіть запрошення в друга, який ним користується. | Это закрытый бот. Чтобы присоединиться, попросите приглашение у друга, который им пользуется. | |
 | invite_invalid | This invite doesn't work anymore. Ask for a new one. | Це запрошення вже не діє. Попросіть нове. | Это приглашение больше не действует. Попросите новое. | |
 | welcome | Send me a track name and I'll find it. | Надішліть назву треку, і я його знайду. | Пришлите название трека, и я его найду. | slot `hello` may prefix |
-| language_button | Language: English | Мова: українська | Язык: русский | button, slot `language` icon; max 20 chars |
-| language_name | English | Українська | Русский | picker button label |
-| language_prompt | Choose a language. | Виберіть мову. | Выберите язык. | |
-| language_set | Done, I speak English now. | Готово, тепер я говорю українською. | Готово, теперь я говорю по-русски. | proofread UK/RU |
+| language_flag | 🇬🇧 | 🇺🇦 | 🇷🇺 | Unicode, the guide's one exception; picker only |
+| language_name | English | Українська | Русский | picker button label is `language_flag`, a space, `language_name`; max 13 chars |
+| language_prompt | Choose a language. | Виберіть мову. | Выберите язык. | first-run picker and `/language` |
+| language_set | Done, I speak English now. | Готово, мова встановлена на українську. | Готово, язык установлен на русский. | `/language` only; owner copy, 2026-10-15 |
 | help | Send a track name, like `<i>daft punk instant crush</i>`, and tap a track in the list.`\n`/language changes the language. | Надішліть назву треку, наприклад `<i>daft punk instant crush</i>`, і натисніть потрібний трек у списку.`\n`/language змінює мову. | Пришлите название трека, например `<i>daft punk instant crush</i>`, и нажмите нужный трек в списке.`\n`/language меняет язык. | |
 | results_header | `<b>{query}</b>` | `<b>{query}</b>` | `<b>{query}</b>` | |
 | result_label | `{label} · {duration}` | `{label} · {duration}` | `{label} · {duration}` | track button; `{label}` is `Title - Artist` or `Title`, shortened per "Track label"; plain text, not escaped (buttons have no parse mode) |
@@ -248,7 +258,6 @@ matches the audio player); track buttons use `result_label` instead.
 | slot | where | kind |
 |------|-------|------|
 | `hello` | start of `welcome` | message entity |
-| `language` | `language_button` | button icon |
 | `track` | every track button | button icon |
 | `loading` | loading track button | button icon (an animated one suits it) |
 | `error` | start of `search_failed`, `download_failed` | message entity |
@@ -286,12 +295,20 @@ matches the audio player); track buttons use `result_label` instead.
 - **Message deleted by the user while a track loads:** the audio is still sent; the
   button restore is skipped silently.
 - **Picking the language already set** (owner-approved default, 2026-10-12): handled
-  like a change. The welcome picker edits back to the welcome; the `/language` picker
+  like a change. The first-run picker edits into the welcome; the `/language` picker
   shows `language_set`. No toast.
 - **Language buttons on an old message** (owner-approved default, 2026-10-12): they
-  keep working. An old welcome's picker highlights the language stored now; picking
-  re-renders that message in the new language. No expiry toast. Other old messages are
-  not updated after a change (assumed default, 2026-10-13).
+  keep working. A first-run picker tapped after a language was already picked (for
+  example a second one from a repeated `/start`) saves the tapped language and edits
+  that message into the welcome in it, like the first time. An old `/language` picker
+  saves and shows `language_set`. No expiry toast. Other old messages are not updated
+  after a change (assumed default, 2026-10-13).
+- **First-run picker ignored** (assumed default, 2026-10-15): the user can search right
+  away; everything is in the detected language and nothing counts as a pick. The next
+  `/start` sends the picker again.
+- **Old welcome with the removed "Language" button** (assumed default, 2026-10-15; only
+  the admin has one): the tap is answered without text and the message's keyboard is
+  removed.
 - **Button tap from a stranger, a blocked user or a group** (assumed default,
   2026-10-13): the callback is answered without text; nothing is edited or sent.
 - **Double tap or "message is not modified" on a language edit** (owner-approved
@@ -304,12 +321,20 @@ matches the audio player); track buttons use `result_label` instead.
   with the slot's alt emoji inside. Toasts, alerts and command texts carry no emoji.
 - Every callback is answered: without text for tracks, pages and languages; with a
   toast or alert only where this spec says.
-- Edited, never re-sent: the language picker inside the welcome, the `/language` picker,
-  pages of the results message, and the loading state of a track button (only the
-  keyboard is edited for loading and restore).
+- Edited, never re-sent: the first-run picker into the welcome (text and keyboard; the
+  welcome has no keyboard), the `/language` picker into `language_set`, pages of the
+  results message, and the loading state of a track button (only the keyboard is edited
+  for loading and restore).
+- Language picker buttons: text is `language_flag`, a space and `language_name`, each
+  from its own language's catalog; plain Unicode flags, no `icon_custom_emoji_id`.
+- "Has the user picked a language yet" is the one new piece of state (yes or no; any
+  pick from any picker sets it). Storage is db-architect's. UX has no preference for
+  users who existed before this change: not asking them again is fine.
+- Any pick, the first one included, sets that user's chat-scope commands (below).
 - Track buttons: one per row, callback data `<session_id>:<index>` as in ARCHITECTURE,
   `icon_custom_emoji_id` from the `track` slot when set, no `style`.
-- New messages: welcome, `/help`, results, errors, audio.
+- New messages: the first-run picker, the welcome on a later `/start`, the `/language`
+  picker, `/help`, results, errors, audio.
 - Chat actions: `typing` during search; `upload_document` every 4 s during a download
   (there is no audio chat action).
 - Button state that needs storage: per results message, the search session (query,
@@ -366,6 +391,7 @@ third-party client a friend uses:
 
 - Admin replies for `/invite`, `/revoke`, `/ban` (short spec with the invite PR).
 - Rich message cards (see the spike above), inline mode, favourites, history, YouTube.
+- A Settings screen that absorbs `/language` (later roadmap item).
 - Reactions: in private chats they would be regular emoji, which the guide forbids.
 - Later idea: a caption on delivered audio with a link to the bot, so friends who
   receive a forwarded track can find it. Not wanted for now (Owner, 2026-10-10).
