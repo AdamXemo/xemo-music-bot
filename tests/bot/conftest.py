@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from contextlib import AbstractAsyncContextManager
 from typing import Any, cast
 
 import pytest
@@ -9,7 +10,7 @@ from aiogram.methods.base import TelegramType
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
-from xemo_music_bot.core.models import Track
+from xemo_music_bot.core.models import DownloadedAudio, Track
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
 
@@ -77,6 +78,9 @@ class NoProvider:
 
     async def search(self, query: str, limit: int) -> list[Track]:
         raise AssertionError("These tests must not search")
+
+    def download(self, track: Track) -> AbstractAsyncContextManager[DownloadedAudio]:
+        raise AssertionError("These tests must not download")
 
 
 @pytest.fixture

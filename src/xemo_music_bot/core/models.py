@@ -1,6 +1,7 @@
 """Domain models shared by services, providers and repositories."""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Final, Literal
 
 # The languages the bot speaks (ADR 0005). A plain assignment, not a PEP 695 `type`
@@ -34,6 +35,24 @@ class Track:
     duration: int
     artwork_url: str | None
     page_url: str
+
+
+@dataclass(slots=True, frozen=True)
+class DownloadedAudio:
+    """An audio file ready to upload to Telegram.
+
+    Only valid inside the ``MusicProvider.download`` context: the file is deleted when
+    the context exits.
+
+    Attributes:
+        path: The MP3 file.
+        duration: Length of the audio in whole seconds.
+        size: File size in bytes, already checked against Telegram's upload limit.
+    """
+
+    path: Path
+    duration: int
+    size: int
 
 
 @dataclass(slots=True, frozen=True)

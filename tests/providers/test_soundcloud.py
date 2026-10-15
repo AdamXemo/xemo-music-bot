@@ -134,6 +134,13 @@ async def test_search_raises_provider_error_when_yt_dlp_fails() -> None:
         await SoundCloudProvider(extractor).search("instant crush", limit=5)
 
 
+async def test_search_raises_provider_error_on_os_error() -> None:
+    extractor = FakeExtractor(error=OSError("Network is unreachable"))
+
+    with pytest.raises(ProviderError, match="Network is unreachable"):
+        await SoundCloudProvider(extractor).search("instant crush", limit=5)
+
+
 async def test_search_runs_at_most_max_concurrency_yt_dlp_calls() -> None:
     running = 0
     peak = 0

@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import AbstractAsyncContextManager
 from datetime import UTC, datetime
 from typing import Any
 
@@ -30,7 +31,7 @@ from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.bot.keyboards.results import TrackCallback
 from xemo_music_bot.bot.labels import result_label
 from xemo_music_bot.bot.locales.ru import RU
-from xemo_music_bot.core.models import Track
+from xemo_music_bot.core.models import DownloadedAudio, Track
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
@@ -63,6 +64,9 @@ class FakeProvider:
         if self.error is not None:
             raise self.error
         return self.tracks[:limit]
+
+    def download(self, track: Track) -> AbstractAsyncContextManager[DownloadedAudio]:
+        raise AssertionError("Search must not download")
 
 
 @pytest.fixture

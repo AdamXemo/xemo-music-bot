@@ -18,5 +18,11 @@ Verified on yt-dlp 2026.8.19, 2026-10-10:
   `artwork_url` / `avatar_url` are not exposed separately in flat entries.
 - SoundCloud Go+ tracks come back as 30.0 s previews (`duration` is the snippet); the
   `policy: SNIP` field is not in flat entries. Expect several per popular query.
+- Download (verified 2026-10-15): most tracks only have HLS AAC (`hls_aac_160k`), converted to
+  MP3 by `FFmpegExtractAudio`; `info["requested_downloads"][0]["filepath"]` is the final
+  `.mp3`. Go+ tracks are either previews (only format `http_mp3_1_0_preview`, info duration
+  30.0, format_id ends with `preview`) or raise `DownloadError` "This video is DRM protected"
+  (flat search shows the full duration for these). A progress hook raising
+  `DownloadCancelled` stops a running download from another thread's event.
 - Errors surface as `yt_dlp.utils.DownloadError` (subclass of `YoutubeDLError`).
 - `logger` option takes a stdlib `logging.Logger`; info and debug both go to `.debug`.
