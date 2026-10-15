@@ -35,6 +35,7 @@ src/xemo_music_bot/
 │   ├── dispatcher.py    # build_dispatcher(): attaches every feature router
 │   ├── commands.py      # command menu and bot descriptions: startup hook, per-user chat menu
 │   ├── emoji.py         # custom emoji slots (UX guide); empty until the owner picks ids
+│   ├── labels.py        # result_label(): track button text within the 32-character budget
 │   ├── handlers/        # one router per feature: start, language, search, library, admin; fallback last
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
 │   │   └── language.py  # language picker (first run and `/language`)
@@ -47,6 +48,7 @@ src/xemo_music_bot/
 │   ├── metadata.py      # clean performer and title from raw provider metadata
 │   └── services/        # search, delivery, access, library
 │       ├── access.py    # AccessService: admin / member / blocked / stranger
+│       ├── search.py    # SearchService: search, pages, loading marks over search sessions
 │       └── language.py  # LanguageService: change and read users' languages
 ├── providers/
 │   ├── base.py          # MusicProvider protocol
@@ -66,9 +68,12 @@ tests/                   # mirrors src/ layout
 ## Key flows
 
 ### Search
-1. User sends text → `search` handler → `SearchService.search(query, page)`.
-2. Service calls the provider; the search session (query, results, page) lives in Redis
-   for 30 minutes after its last use.
+1. User sends text → `search` handler → `SearchService.search(owner_id, query)`; paging
+   calls `get_page`.
+2. Service asks the provider for 10 results and returns them as `SearchPage`s of 5; the
+   search session (query, results, page) lives in Redis for 30 minutes after its last use.
+   `main()` builds the service once and the dispatcher passes it to handlers as
+   `search_service`.
 3. Handler renders **one** message with inline buttons; pagination edits that message.
    Callback data carries only the session id plus a page number or a result index; the
    query and results live in Redis, because Telegram limits callback data to 64 bytes.

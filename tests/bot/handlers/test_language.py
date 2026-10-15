@@ -34,6 +34,7 @@ from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
 from xemo_music_bot.core.services.language import LanguageService
+from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
 
 MEMBER_ID = 2
@@ -48,8 +49,12 @@ async def seeded(session: AsyncSession) -> None:
 
 
 @pytest.fixture
-def dispatcher(seeded: None, session_factory: async_sessionmaker[AsyncSession]) -> Dispatcher:
-    return build_dispatcher(session_factory, admin_ids=frozenset())
+def dispatcher(
+    seeded: None,
+    session_factory: async_sessionmaker[AsyncSession],
+    search_service: SearchService,
+) -> Dispatcher:
+    return build_dispatcher(session_factory, frozenset(), search_service)
 
 
 def make_user() -> User:

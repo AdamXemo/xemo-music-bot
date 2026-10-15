@@ -14,6 +14,7 @@ from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
 from xemo_music_bot.bot.middlewares.access import AccessMiddleware
+from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
 from xemo_music_bot.db.session import create_session_factory
 
@@ -40,15 +41,21 @@ async def seeded(session: AsyncSession) -> None:
 
 
 @pytest.fixture
-def dispatcher(seeded: None, session_factory: async_sessionmaker[AsyncSession]) -> Dispatcher:
-    return build_dispatcher(session_factory, admin_ids=frozenset({ADMIN_ID}))
+def dispatcher(
+    seeded: None,
+    session_factory: async_sessionmaker[AsyncSession],
+    search_service: SearchService,
+) -> Dispatcher:
+    return build_dispatcher(session_factory, frozenset({ADMIN_ID}), search_service)
 
 
 @pytest.fixture
-def offline_dispatcher(unreachable_engine: AsyncEngine) -> Dispatcher:
+def offline_dispatcher(
+    unreachable_engine: AsyncEngine, search_service: SearchService
+) -> Dispatcher:
     # Any database query fails loudly, which proves an update was dropped without one.
     return build_dispatcher(
-        create_session_factory(unreachable_engine), admin_ids=frozenset({ADMIN_ID})
+        create_session_factory(unreachable_engine), frozenset({ADMIN_ID}), search_service
     )
 
 

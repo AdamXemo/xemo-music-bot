@@ -6,7 +6,12 @@ from aiogram import Bot
 from aiogram.client.session.base import BaseSession
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import TelegramType
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
+
+from xemo_music_bot.core.models import Track
+from xemo_music_bot.core.services.search import SearchService
+from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
 
 
 class RecordingSession(BaseSession):
@@ -65,3 +70,16 @@ def session_factory(connection: AsyncConnection) -> async_sessionmaker[AsyncSess
     return async_sessionmaker(
         bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False
     )
+
+
+class NoProvider:
+    """A provider for dispatcher tests that never search."""
+
+    async def search(self, query: str, limit: int) -> list[Track]:
+        raise AssertionError("These tests must not search")
+
+
+@pytest.fixture
+def search_service(unreachable_redis: Redis) -> SearchService:
+    # Redis is unreachable on purpose: a handler that unexpectedly uses it fails loudly.
+    return SearchService(NoProvider(), SearchSessionsRepository(unreachable_redis))
