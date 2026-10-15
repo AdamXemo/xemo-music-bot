@@ -3,7 +3,7 @@
 from aiogram import Dispatcher
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from xemo_music_bot.bot.handlers import language, start
+from xemo_music_bot.bot.handlers import fallback, language, start
 from xemo_music_bot.bot.middlewares.access import AccessMiddleware
 from xemo_music_bot.bot.middlewares.db_session import DbSessionMiddleware
 
@@ -24,4 +24,6 @@ def build_dispatcher(
     dispatcher.update.outer_middleware(AccessMiddleware(admin_ids))
     dispatcher.include_router(start.build_router())
     dispatcher.include_router(language.build_router())
+    # Last: aiogram tries routers in order, and the fallback matches every callback.
+    dispatcher.include_router(fallback.build_router())
     return dispatcher

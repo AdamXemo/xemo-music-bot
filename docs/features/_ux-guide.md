@@ -49,6 +49,10 @@ Cross-cutting UX decisions for every feature spec. Extends "UX principles" in
   cleaned metadata: a title of the form `X - Y` is split into performer `X` and title
   `Y`, and junk like "(Official Audio)" is removed. Rules in the MVP spec.
 - Ellipsis is the single character `…`.
+- No period at the end of a message, toast, alert, button or description, nor at the
+  end of any line in a multi-line message (Owner, 2026-10-15). Periods between
+  sentences on one line stay: `This bot is private. To join, ask @Xemo999 for an invite`.
+  `?`, `!` and `…` stay where the meaning needs them (assumed default, 2026-10-15).
 - Language names are always in their own language: English, Українська, Русский. On
   picker buttons they follow their flag (see "Emoji rules").
 

@@ -26,9 +26,6 @@ class CustomEmoji:
 HELLO: Final[CustomEmoji | None] = None
 """In front of the welcome text."""
 
-LANGUAGE: Final[CustomEmoji | None] = None
-"""Icon of the welcome's language button."""
-
 
 def with_emoji(slot: CustomEmoji | None, html: str) -> str:
     """Put the slot's emoji in front of HTML message text.
@@ -43,8 +40,3 @@ def with_emoji(slot: CustomEmoji | None, html: str) -> str:
     if slot is None:
         return html
     return f'<tg-emoji emoji-id="{slot.emoji_id}">{slot.alt}</tg-emoji> {html}'
-
-
-def icon_id(slot: CustomEmoji | None) -> str | None:
-    """Return the value for a button's ``icon_custom_emoji_id``: ``None`` for an empty slot."""
-    return None if slot is None else slot.emoji_id

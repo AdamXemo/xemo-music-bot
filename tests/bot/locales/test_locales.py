@@ -33,8 +33,16 @@ def test_each_language_has_its_own_catalog() -> None:
 
 
 @pytest.mark.parametrize("texts", [EN, UK, RU])
-def test_language_button_fits_the_spec_budget(texts: Texts) -> None:
-    assert len(texts.language_button) <= 20, texts.language_button
+def test_language_name_fits_the_spec_budget(texts: Texts) -> None:
+    assert len(texts.language_name) <= 13, texts.language_name
+
+
+@pytest.mark.parametrize("texts", [EN, UK, RU])
+def test_language_flag_is_one_flag(texts: Texts) -> None:
+    # A flag is a pair of regional indicator symbols.
+    assert len(texts.language_flag) == 2, texts.language_flag
+    for char in texts.language_flag:
+        assert unicodedata.name(char).startswith("REGIONAL INDICATOR SYMBOL"), texts.language_flag
 
 
 @pytest.mark.parametrize("texts", [EN, UK, RU])
@@ -48,7 +56,10 @@ def test_copy_is_valid_html_text(texts: Texts) -> None:
 
 @pytest.mark.parametrize("texts", [EN, UK, RU])
 def test_copy_contains_no_unicode_emoji(texts: Texts) -> None:
-    # Owner rule: only premium custom emoji (sent as entities) may appear in bot copy.
+    # Owner rule: only premium custom emoji (sent as entities) may appear in bot copy;
+    # the picker's language flags are the one exception.
     for field in fields(texts):
+        if field.name == "language_flag":
+            continue
         value = getattr(texts, field.name)
         assert not [char for char in value if unicodedata.category(char) == "So"], field.name

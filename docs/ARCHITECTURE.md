@@ -34,9 +34,9 @@ src/xemo_music_bot/
 ├── bot/
 │   ├── dispatcher.py    # build_dispatcher(): attaches every feature router
 │   ├── emoji.py         # custom emoji slots (UX guide); empty until the owner picks ids
-│   ├── handlers/        # one router per feature: start, language, search, library, admin
+│   ├── handlers/        # one router per feature: start, language, search, library, admin; fallback last
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
-│   │   └── language.py  # welcome's language button, language picker
+│   │   └── language.py  # language picker (first run and `/language`)
 │   ├── middlewares/     # access control, DB session, throttling
 │   │   ├── db_session.py  # DbSessionMiddleware: one session per update, commit after handler
 │   │   └── access.py      # AccessMiddleware: private chats only, members and config admins pass
@@ -94,16 +94,23 @@ handler, denying by default:
 `/start <invite_code>` will be the only way in for friends (Invite codes item).
 
 ### Language
-1. A pick calls `LanguageService.set_language()` and edits the message in the new
-   language: back to the welcome, or to a confirmation after `/language`.
-2. Callback data is stateless (`language:<code>:<origin>`), so old pickers keep working;
-   an unknown code fails parsing and never reaches the database.
+1. While `users.language_chosen` is false, `/start` sends the language picker in the
+   stored language; once it is true, `/start` sends only the welcome.
+   `/language` sends the picker at any time.
+2. A pick calls `LanguageService.set_language()`, which also sets `language_chosen`, and
+   edits the picker in the new language: into the welcome for the first-run picker, or
+   into a confirmation after `/language`.
+3. Callback data is stateless (`language:<code>:<origin>`, origin `first_run` or
+   `command`), so old pickers keep working; an unknown code fails parsing and never
+   reaches the database. Taps no handler matches (forged data, buttons from older
+   versions) go to the fallback router, included last: answered without text, and the
+   message's keyboard is removed.
 
 ## Data model (MVP)
 
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
-| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`, text NOT NULL, server default `en`, CHECK `ck_users_language_valid`; set from Telegram's `language_code` when the row is created, changed via the picker or `/language`); `language_chosen` (boolean NOT NULL, server default false; set true by any language pick) |
+| `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`, text NOT NULL, server default `en`, CHECK `ck_users_language_valid`; set from Telegram's `language_code` when the row is created, changed via the picker or `/language`); `language_chosen` (boolean NOT NULL, server default false; set true by any language pick; while false, `/start` shows the language picker) |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
 | `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
 

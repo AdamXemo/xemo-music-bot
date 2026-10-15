@@ -21,8 +21,8 @@ Other messages from strangers are ignored.
 
 ```
 ┌──────────────────────────────────────────────┐
-│ This bot is private. To join, ask a friend   │
-│ who uses it for an invite.                   │
+│ This bot is private. To join, ask @Xemo999   │
+│ for an invite                                │
 └──────────────────────────────────────────────┘
 ```
 
@@ -42,7 +42,7 @@ space and the name, so it reads the same whatever the prompt language.
 
 ```
 ┌──────────────────────────────────────────────┐
-│ Choose a language.                           │
+│ Choose a language                            │
 │ [ 🇬🇧 English ] [ 🇺🇦 Українська ] [ 🇷🇺 Русский ] │
 └──────────────────────────────────────────────┘
 ```
@@ -56,7 +56,7 @@ The callback is answered without text.
 ```
 ┌──────────────────────────────────────────────┐
 │ [e:hello] Send me a track name and I'll      │
-│ find it.                                     │
+│ find it                                      │
 └──────────────────────────────────────────────┘
 ```
 
@@ -68,7 +68,7 @@ edits the message to `language_set` (no keyboard), written in the new language.
 
 ```
 ┌──────────────────────────────────────────────┐
-│ Done, I speak English now.                   │
+│ Language set to English                      │
 └──────────────────────────────────────────────┘
 ```
 
@@ -77,8 +77,8 @@ edits the message to `language_set` (no keyboard), written in the new language.
 ```
 ┌──────────────────────────────────────────────┐
 │ Send a track name, like daft punk instant    │
-│ crush, and tap a track in the list.          │
-│ /language changes the language.              │
+│ crush, and tap a track in the list           │
+│ /language changes the language               │
 └──────────────────────────────────────────────┘
 ```
 
@@ -200,6 +200,8 @@ in the results list, the audio and the `tracks` cache:
 | Search trigger | Any plain text message (not a command) | Assumed default |
 | Commands | `/start`, `/help`, `/language`; admins also see `/invite`, `/revoke`, `/ban` | Assumed default |
 | Strangers | Only `/start` gets a reply; everything else is ignored | Assumed default |
+| Stranger reply | `private_bot` and `bot_description` name the owner, @Xemo999, as the person to ask for an invite | Owner, 2026-10-15 |
+| Unrecognised buttons | One catch-all: answered without text, keyboard removed, nothing saved | Owner, 2026-10-15 |
 | Language picker | `🇬🇧 English`, `🇺🇦 Українська`, `🇷🇺 Русский` (flag, space, name) in one row; stored one `primary` | Owner, 2026-10-15 (flags); `primary` assumed default |
 | Picker row too wide | If a phone cuts a label, the three buttons stack one per row | Assumed default, 2026-10-15 |
 | Download failure | Short new message, the track button is restored; tapping it retries | Assumed default |
@@ -219,39 +221,39 @@ matches the audio player); track buttons use `result_label` instead.
 
 | key | EN | UK | RU | notes |
 |-----|----|----|----|-------|
-| private_bot | This bot is private. To join, ask a friend who uses it for an invite. | Це приватний бот. Щоб приєднатися, попросіть запрошення в друга, який ним користується. | Это закрытый бот. Чтобы присоединиться, попросите приглашение у друга, который им пользуется. | |
-| invite_invalid | This invite doesn't work anymore. Ask for a new one. | Це запрошення вже не діє. Попросіть нове. | Это приглашение больше не действует. Попросите новое. | |
-| welcome | Send me a track name and I'll find it. | Надішліть назву треку, і я його знайду. | Пришлите название трека, и я его найду. | slot `hello` may prefix |
+| private_bot | This bot is private. To join, ask @Xemo999 for an invite | Це приватний бот. Щоб приєднатися, попросіть запрошення в @Xemo999 | Это закрытый бот. Чтобы присоединиться, попросите приглашение у @Xemo999 | owner copy, 2026-10-15 |
+| invite_invalid | This invite doesn't work anymore. Ask for a new one | Це запрошення вже не діє. Попросіть нове | Это приглашение больше не действует. Попросите новое | |
+| welcome | Send me a track name and I'll find it | Надішліть назву треку, і я його знайду | Пришлите название трека, и я его найду | slot `hello` may prefix; owner copy, 2026-10-15 |
 | language_flag | 🇬🇧 | 🇺🇦 | 🇷🇺 | Unicode, the guide's one exception; picker only |
 | language_name | English | Українська | Русский | picker button label is `language_flag`, a space, `language_name`; max 13 chars |
-| language_prompt | Choose a language. | Виберіть мову. | Выберите язык. | first-run picker and `/language` |
-| language_set | Done, I speak English now. | Готово, мова встановлена на українську. | Готово, язык установлен на русский. | `/language` only; owner copy, 2026-10-15 |
-| help | Send a track name, like `<i>daft punk instant crush</i>`, and tap a track in the list.`\n`/language changes the language. | Надішліть назву треку, наприклад `<i>daft punk instant crush</i>`, і натисніть потрібний трек у списку.`\n`/language змінює мову. | Пришлите название трека, например `<i>daft punk instant crush</i>`, и нажмите нужный трек в списке.`\n`/language меняет язык. | |
+| language_prompt | Choose a language | Виберіть мову | Выберите язык | first-run picker and `/language`; owner copy, 2026-10-15 |
+| language_set | Language set to English | Мову змінено на українську | Язык изменён на русский | `/language` only; owner copy, 2026-10-15 |
+| help | Send a track name, like `<i>daft punk instant crush</i>`, and tap a track in the list`\n`/language changes the language | Надішліть назву треку, наприклад `<i>daft punk instant crush</i>`, і натисніть потрібний трек у списку`\n`/language змінює мову | Пришлите название трека, например `<i>daft punk instant crush</i>`, и нажмите нужный трек в списке`\n`/language меняет язык | no period at a line end (guide) |
 | results_header | `<b>{query}</b>` | `<b>{query}</b>` | `<b>{query}</b>` | |
 | result_label | `{label} · {duration}` | `{label} · {duration}` | `{label} · {duration}` | track button; `{label}` is `Title - Artist` or `Title`, shortened per "Track label"; plain text, not escaped (buttons have no parse mode) |
 | pager_back | ‹ Back | ‹ Назад | ‹ Назад | button |
 | pager_next | Next › | Далі › | Далее › | button |
 | pager_counter | `{page} / {pages}` | `{page} / {pages}` | `{page} / {pages}` | disabled button |
 | track_loading | Loading… | Завантаження… | Загрузка… | disabled button, slot `loading` icon |
-| no_results | Nothing found for “{query}”. Try fewer words or another spelling. | За запитом «{query}» нічого не знайдено. Спробуйте коротший запит або інше написання. | По запросу «{query}» ничего не нашлось. Попробуйте запрос покороче или другое написание. | |
-| search_failed | SoundCloud isn't responding. Try again in a minute. | SoundCloud не відповідає. Спробуйте ще раз за хвилину. | SoundCloud не отвечает. Попробуйте ещё раз через минуту. | slot `error` may prefix |
-| query_too_long | That's too long for a search. Try just the artist and title. | Задовгий запит. Спробуйте лише виконавця й назву. | Слишком длинный запрос. Попробуйте только исполнителя и название. | |
-| not_text | Send the track name as text. | Надішліть назву треку текстом. | Пришлите название трека текстом. | |
-| link_not_supported | Search doesn't work with links. Send the track name instead. | Пошук за посиланнями не працює. Надішліть назву треку. | Поиск по ссылкам не работает. Пришлите название трека. | ADR 0002 |
-| unknown_command | There's no such command. Try /help. | Такої команди немає. Спробуйте /help. | Такой команды нет. Попробуйте /help. | |
-| too_long | This track is too long for Telegram ({duration}). Try a shorter version. | Цей трек задовгий для Telegram ({duration}). Спробуйте коротшу версію. | Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче. | alert, under 200 chars |
-| too_large | “{track}” is too large for Telegram. Try a shorter version. | Трек «{track}» завеликий для Telegram. Спробуйте коротшу версію. | Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче. | message |
-| download_failed | Couldn't get “{track}”. Tap it again to retry, or pick another one. | Не вдалося завантажити «{track}». Натисніть на нього ще раз або виберіть інший. | Не получилось загрузить «{track}». Нажмите на него ещё раз или выберите другой. | slot `error` may prefix |
-| already_loading | Already on its way. | Уже завантажується. | Уже загружается. | toast |
-| results_expired | These results have expired. Send the name again. | Ці результати застаріли. Надішліть назву ще раз. | Эти результаты устарели. Пришлите название ещё раз. | toast |
+| no_results | Nothing found for “{query}”. Try fewer words or another spelling | За запитом «{query}» нічого не знайдено. Спробуйте коротший запит або інше написання | По запросу «{query}» ничего не нашлось. Попробуйте запрос покороче или другое написание | |
+| search_failed | SoundCloud isn't responding. Try again in a minute | SoundCloud не відповідає. Спробуйте ще раз за хвилину | SoundCloud не отвечает. Попробуйте ещё раз через минуту | slot `error` may prefix |
+| query_too_long | That's too long for a search. Try just the artist and title | Задовгий запит. Спробуйте лише виконавця й назву | Слишком длинный запрос. Попробуйте только исполнителя и название | |
+| not_text | Send the track name as text | Надішліть назву треку текстом | Пришлите название трека текстом | |
+| link_not_supported | Search doesn't work with links. Send the track name instead | Пошук за посиланнями не працює. Надішліть назву треку | Поиск по ссылкам не работает. Пришлите название трека | ADR 0002 |
+| unknown_command | There's no such command. Try /help | Такої команди немає. Спробуйте /help | Такой команды нет. Попробуйте /help | |
+| too_long | This track is too long for Telegram ({duration}). Try a shorter version | Цей трек задовгий для Telegram ({duration}). Спробуйте коротшу версію | Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче | alert, under 200 chars |
+| too_large | “{track}” is too large for Telegram. Try a shorter version | Трек «{track}» завеликий для Telegram. Спробуйте коротшу версію | Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче | message |
+| download_failed | Couldn't get “{track}”. Tap it again to retry, or pick another one | Не вдалося завантажити «{track}». Натисніть на нього ще раз або виберіть інший | Не получилось загрузить «{track}». Нажмите на него ещё раз или выберите другой | slot `error` may prefix |
+| already_loading | Already on its way | Уже завантажується | Уже загружается | toast |
+| results_expired | These results have expired. Send the name again | Ці результати застаріли. Надішліть назву ще раз | Эти результаты устарели. Пришлите название ещё раз | toast |
 | cmd_start | Start the bot | Запустити бота | Запустить бота | command description |
 | cmd_help | How it works | Як користуватися | Как пользоваться | command description |
 | cmd_language | Change language | Змінити мову | Сменить язык | command description |
 | cmd_invite | Create an invite | Створити запрошення | Создать приглашение | admin only |
 | cmd_revoke | Revoke an invite | Скасувати запрошення | Отозвать приглашение | admin only |
 | cmd_ban | Block a user | Заблокувати користувача | Заблокировать пользователя | admin only |
-| bot_short_description | Private music bot for a circle of friends. Invite only. | Приватний музичний бот для кола друзів. Лише за запрошенням. | Закрытый музыкальный бот для своих. Только по приглашению. | `setMyShortDescription`, max 120 |
-| bot_description | Send a track name, pick it from the list and get the audio right in the chat.`\n\n`This bot is private: you need an invite from a friend. | Надішліть назву треку, виберіть його зі списку й отримайте аудіо просто в чаті.`\n\n`Бот приватний: потрібне запрошення від друга. | Пришлите название трека, выберите его в списке и получите аудио прямо в чате.`\n\n`Бот закрытый: нужно приглашение от друга. | `setMyDescription`, max 512 |
+| bot_short_description | Private music bot for a circle of friends. Invite only | Приватний музичний бот для кола друзів. Лише за запрошенням | Закрытый музыкальный бот для своих. Только по приглашению | `setMyShortDescription`, max 120 |
+| bot_description | Send a track name, pick it from the list and get the audio right in the chat`\n\n`This bot is private: ask @Xemo999 for an invite | Надішліть назву треку, виберіть його зі списку й отримайте аудіо просто в чаті`\n\n`Бот приватний: попросіть запрошення в @Xemo999 | Пришлите название трека, выберите его в списке и получите аудио прямо в чате`\n\n`Бот закрытый: попросите приглашение у @Xemo999 | `setMyDescription`, max 512; names the owner like `private_bot` (Owner, 2026-10-15) |
 
 ## Emoji slots
 
@@ -309,6 +311,11 @@ matches the audio player); track buttons use `result_label` instead.
 - **Old welcome with the removed "Language" button** (assumed default, 2026-10-15; only
   the admin has one): the tap is answered without text and the message's keyboard is
   removed.
+- **Any other button no handler recognises** (outdated or unparseable callback data, for
+  example a picker sent before the current data format; Owner, 2026-10-15; one catch-all
+  handler):
+  same as the old "Language" button. Answered without text, keyboard removed, nothing
+  saved.
 - **Button tap from a stranger, a blocked user or a group** (assumed default,
   2026-10-13): the callback is answered without text; nothing is edited or sent.
 - **Double tap or "message is not modified" on a language edit** (owner-approved
@@ -330,7 +337,8 @@ matches the audio player); track buttons use `result_label` instead.
 - "Has the user picked a language yet" is the one new piece of state (yes or no; any
   pick from any picker sets it). Storage is db-architect's. UX has no preference for
   users who existed before this change: not asking them again is fine.
-- Any pick, the first one included, sets that user's chat-scope commands (below).
+- Any pick, the first one included, sets that user's chat-scope commands (below; lands
+  with i18n 2/2).
 - Track buttons: one per row, callback data `<session_id>:<index>` as in ARCHITECTURE,
   `icon_custom_emoji_id` from the `track` slot when set, no `style`.
 - New messages: the first-run picker, the welcome on a later `/start`, the `/language`

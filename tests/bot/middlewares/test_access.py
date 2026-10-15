@@ -107,14 +107,15 @@ async def test_blocked_user_start_gets_private_bot_line(
     assert request.text == EN.private_bot
 
 
-async def test_member_start_is_greeted_in_the_stored_language(
+async def test_member_start_is_answered_in_the_stored_language(
     bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
 ) -> None:
     await dispatcher.feed_update(bot, make_update("/start", MEMBER_ID, language_code="ru"))
 
     [request] = sent_requests
     assert isinstance(request, SendMessage)
-    assert request.text == UK.welcome
+    # The first-run picker, since the seeded rows have not picked a language yet.
+    assert request.text == UK.language_prompt
 
 
 async def test_config_admin_first_start_creates_row_and_reaches_the_handler(
@@ -127,7 +128,7 @@ async def test_config_admin_first_start_creates_row_and_reaches_the_handler(
 
     [request] = sent_requests
     assert isinstance(request, SendMessage)
-    assert request.text == EN.welcome
+    assert request.text == EN.language_prompt
     role = await connection.scalar(select(DbUser.role).where(DbUser.tg_id == ADMIN_ID))
     assert role == "user"
 

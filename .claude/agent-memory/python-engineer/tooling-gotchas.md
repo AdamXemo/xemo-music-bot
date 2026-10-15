@@ -11,7 +11,7 @@ metadata:
   and any inline command containing the word "commit", e.g. a sed pattern). Scripts
   written to the scratchpad and run with `bash script.sh` pass. **How to apply:** read files
   with the Read tool, write scratch scripts with Write, keep git commands simple.
-- `–` / `—` escapes written into Python files came out as literal en/em dashes
+- The en dash / em dash escapes written into Python files came out as literal dashes
   (ruff RUF001 caught it). **How to apply:** after writing code or tests that mention
   dashes, grep for `[\x{2013}\x{2014}]` and fix with
   `sed -i 's/\xe2\x80\x93/\\u2013/g; s/\xe2\x80\x94/\\u2014/g'`.

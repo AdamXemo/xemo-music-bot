@@ -36,5 +36,8 @@ Verified 2026-10-12 (sqlalchemy 2.1.4, alembic 1.20.0, asyncpg 0.32.0, postgres:
   `BOT_TOKEN=123456:TEST DATABASE_URL=<test url> uv run --project <repo> alembic -c <repo>/alembic.ini upgrade A:B --sql`.
 - Migration data tests: sync test + `asyncio.run` on a throwaway `create_db_engine` with raw
   `text()` SQL (the ORM model is ahead of older revisions); finally-clean rows and upgrade head.
+- 2026-10-15: model `mapped_column(server_default=false())` matches migration
+  `server_default=sa.false()` under `compare_server_default=True`; a model `"true"` is caught
+  by the drift test (`modify_default`), so default mismatches do not slip through.
 - `migrations/env.py` calls `get_settings()` only when no `sqlalchemy.url` is set; that needs
   BOT_TOKEN in env or `.env` for `alembic upgrade head`.

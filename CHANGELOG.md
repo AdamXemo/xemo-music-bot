@@ -45,10 +45,12 @@ Versioning: [SemVer](https://semver.org/).
   the user's catalog from the access middleware, so `/start` greets in the stored language.
 - `users.language_chosen` (migration 0004; existing rows get false) records whether a user
   has picked a language; any pick sets it.
-- i18n 1/2: `/start` sends the welcome with a language button that opens a language
-  picker in the same message; `/language` sends the picker as a new message. A pick is
-  saved and the message is redrawn in the new language. Messages use HTML parse mode.
-  Button taps from strangers, blocked users and groups are answered silently.
+- i18n 1/2: until a user picks a language, `/start` sends a language picker (flag and
+  name per language) and a pick turns it into the welcome in that language; later
+  `/start`s send only the welcome. `/language` sends the picker as a new message and a
+  pick turns it into a confirmation. Messages use HTML parse mode.
+  Button taps from strangers, blocked users and groups are answered silently; taps on
+  buttons no handler recognises are answered silently and those buttons are removed.
 
 ### Changed
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
