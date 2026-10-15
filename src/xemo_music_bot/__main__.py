@@ -14,13 +14,14 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from xemo_music_bot.bot.commands import publish_commands
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.config import get_settings
+from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.redis import check_connection as check_redis_connection
 from xemo_music_bot.db.redis import create_redis
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
 from xemo_music_bot.db.session import check_connection, create_db_engine, create_session_factory
 from xemo_music_bot.logging_setup import setup_logging
-from xemo_music_bot.providers.soundcloud import SoundCloudProvider
+from xemo_music_bot.providers.soundcloud import MAX_DURATION, SoundCloudProvider
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +85,12 @@ def main() -> None:
     engine = create_db_engine(settings.database_url.get_secret_value())
     session_factory = create_session_factory(engine)
     redis = create_redis(settings.redis_url.get_secret_value())
-    search_service = SearchService(SoundCloudProvider(), SearchSessionsRepository(redis))
-    dispatcher = build_dispatcher(session_factory, settings.admin_ids, search_service)
+    provider = SoundCloudProvider()
+    search_service = SearchService(provider, SearchSessionsRepository(redis))
+    delivery_service = DeliveryService(provider, MAX_DURATION)
+    dispatcher = build_dispatcher(
+        session_factory, settings.admin_ids, search_service, delivery_service
+    )
     # partial binds the leading arguments; aiogram calls hooks only with the arguments they
     # declare (publish_commands asks for `bot`).
     # Keep check_database the first startup hook: aiogram runs startup hooks before its

@@ -22,12 +22,20 @@ class Texts:
         pager_back: Label of the button to the previous page.
         pager_next: Label of the button to the next page.
         pager_counter: Label of the disabled page counter; ``{page}`` and ``{pages}``.
+        track_loading: Label of the disabled button a track becomes while it downloads.
         no_results: Reply when nothing matched; ``{query}`` is the HTML-escaped query.
         search_failed: Reply when the music source fails.
         query_too_long: Reply to a query over the length limit.
         not_text: Reply to a message that is not text.
         link_not_supported: Reply to text with a link in it.
         unknown_command: Reply to a command the bot does not have.
+        too_long: Alert on a track too long to send; ``{duration}`` is its length.
+        too_large: Reply when the file is over Telegram's limit; ``{track}`` is the
+            HTML-escaped ``Artist - Title``.
+        download_failed: Reply when the download or upload failed; ``{track}`` as above.
+        track_unavailable: Reply when the source refuses the track (Go+ preview or DRM);
+            ``{track}`` as above.
+        already_loading: Toast on a tap on a track that is already downloading.
         results_expired: Toast on a tap on results that are gone from the cache.
         cmd_start: Description of `/start` in the command menu.
         cmd_language: Description of `/language` in the command menu.
@@ -45,12 +53,18 @@ class Texts:
     pager_back: str
     pager_next: str
     pager_counter: str
+    track_loading: str
     no_results: str
     search_failed: str
     query_too_long: str
     not_text: str
     link_not_supported: str
     unknown_command: str
+    too_long: str
+    too_large: str
+    download_failed: str
+    track_unavailable: str
+    already_loading: str
     results_expired: str
     cmd_start: str
     cmd_language: str

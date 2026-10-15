@@ -29,6 +29,12 @@ HELLO: Final[CustomEmoji | None] = None
 TRACK: Final[CustomEmoji | None] = None
 """Icon of every track button in the results list."""
 
+LOADING: Final[CustomEmoji | None] = None
+"""Icon of the disabled button a track becomes while it downloads."""
+
+ERROR: Final[CustomEmoji | None] = None
+"""In front of the failure messages (`download_failed`, `track_unavailable`)."""
+
 
 def button_icon(slot: CustomEmoji | None) -> str | None:
     """Return the ID to put in a button's ``icon_custom_emoji_id``.

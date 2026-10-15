@@ -10,8 +10,8 @@ from aiogram.enums import ContentType, MessageEntityType
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.chat_action import ChatActionSender
 
-from xemo_music_bot.bot.handlers.edits import edit_tapped_message
-from xemo_music_bot.bot.keyboards.results import PageCallback, TrackCallback, results_keyboard
+from xemo_music_bot.bot.handlers.edits import edit_tapped_message, expire_results
+from xemo_music_bot.bot.keyboards.results import PageCallback, results_keyboard
 from xemo_music_bot.bot.locales import Texts
 from xemo_music_bot.core.services.search import SearchPage, SearchService
 from xemo_music_bot.db.models import User
@@ -107,40 +107,10 @@ async def handle_page(
         db_user.tg_id, callback_data.session_id, callback_data.page
     )
     if page is None:
-        await _expire(callback, texts)
+        await expire_results(callback, texts)
         return
     await callback.answer()
     await edit_tapped_message(callback, results_text(page, texts), results_keyboard(page, texts))
-
-
-async def handle_track(
-    callback: CallbackQuery,
-    callback_data: TrackCallback,
-    db_user: User,
-    texts: Texts,
-    search_service: SearchService,
-) -> None:
-    """Answer a tap on a track; nothing is delivered until the Delivery item lands.
-
-    Args:
-        callback: The tap on a track button.
-        callback_data: The parsed button data.
-        db_user: The sender's row, injected by ``AccessMiddleware``.
-        texts: The user's catalog, injected by ``AccessMiddleware``.
-        search_service: The long-lived service from the dispatcher's workflow data.
-    """
-    # Delivery replaces this check with the download; until then it only tells a live
-    # session from an expired one, so dead buttons are cleaned up as the spec asks.
-    if await search_service.current_page(db_user.tg_id, callback_data.session_id) is None:
-        await _expire(callback, texts)
-        return
-    await callback.answer()
-
-
-async def _expire(callback: CallbackQuery, texts: Texts) -> None:
-    """Tell the user the results are gone and remove the message's dead buttons."""
-    await callback.answer(texts.results_expired)
-    await edit_tapped_message(callback, None)
 
 
 # Content a user sends on purpose. Service messages (a pin, an auto-delete timer, a chat
@@ -176,5 +146,4 @@ def build_router() -> Router:
     router.message.register(handle_text, F.text)
     router.message.register(handle_not_text, F.content_type.in_(_USER_CONTENT))
     router.callback_query.register(handle_page, PageCallback.filter())
-    router.callback_query.register(handle_track, TrackCallback.filter())
     return router
