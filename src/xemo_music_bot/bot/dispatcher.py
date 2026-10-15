@@ -6,18 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from xemo_music_bot.bot.handlers import fallback, language, start
 from xemo_music_bot.bot.middlewares.access import AccessMiddleware
 from xemo_music_bot.bot.middlewares.db_session import DbSessionMiddleware
+from xemo_music_bot.core.services.search import SearchService
 
 
 def build_dispatcher(
-    session_factory: async_sessionmaker[AsyncSession], admin_ids: frozenset[int]
+    session_factory: async_sessionmaker[AsyncSession],
+    admin_ids: frozenset[int],
+    search_service: SearchService,
 ) -> Dispatcher:
     """Create a dispatcher with the middlewares and every feature router attached.
 
     Args:
         session_factory: Opens the per-update database session handlers get as ``session``.
         admin_ids: Telegram IDs from config with admin rights.
+        search_service: Long-lived service handlers get as ``search_service``; it holds no
+            per-update state, unlike the database session.
     """
-    dispatcher = Dispatcher()
+    dispatcher = Dispatcher(search_service=search_service)
     # Outer middleware on update: the session exists before any filter runs, and the
     # access middleware (registered after this one) can read it.
     dispatcher.update.outer_middleware(DbSessionMiddleware(session_factory))

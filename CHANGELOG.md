@@ -7,6 +7,9 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Search UX 1/2: `SearchService` (search, paging, loading marks over the Redis session),
+  the track button label (`result_label`, 32-character budget) and the service wired into
+  the dispatcher; no visible change yet.
 - Redis: client from `REDIS_URL`, startup connection check, `redis` service in compose and
   CI, and `SearchSessionsRepository` for search sessions (results, page, loading marks).
 - Project planning docs: AGENTS.md, roadmap, architecture, contributing guide, ADRs 0001-0004.

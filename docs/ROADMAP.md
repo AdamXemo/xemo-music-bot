@@ -69,6 +69,7 @@ and Russian. Keep everything else as simple as it can be.
 - [x] Redis: client from config, search session cache (results, page and loading set
       under a short id with TTL)
 - [ ] Search UX: text message → one results message, inline buttons, pagination by edit
+      (1/2 done: `SearchService`, track labels, wiring; 2/2: handler and keyboards)
 - [ ] Provider download: `MusicProvider.download()` via yt-dlp in `asyncio.to_thread`
       behind a semaphore, temp dir always cleaned up, max-duration guard (50 MB upload cap)
 - [ ] Delivery: track button → `DeliveryService` → `sendAudio` with title/artist/cover/duration

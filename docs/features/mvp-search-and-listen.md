@@ -370,10 +370,10 @@ matches the audio player); track buttons use `result_label` instead.
 
 ## Rich cards spike
 
-Owner decision 2026-10-10: before the Search UX PR, a throwaway script (not merged, no
-handlers) tests rich-message track cards on real devices. The result decides whether
-cards replace the track buttons in a later PR; callbacks and the search session stay the
-same either way.
+Owner decision 2026-10-10, moved to after Delivery (owner decision 2026-10-15): a
+throwaway script (not merged, no handlers) tests rich-message track cards on real devices.
+The result decides whether cards replace the track buttons in a later PR; callbacks and
+the search session stay the same either way.
 
 What the script sends to the owner and two or three friends:
 
