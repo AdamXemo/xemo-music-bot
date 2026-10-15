@@ -6,6 +6,7 @@ from aiogram.types import DisabledButton, InlineKeyboardButton, InlineKeyboardMa
 from xemo_music_bot.bot import emoji
 from xemo_music_bot.bot.labels import result_label
 from xemo_music_bot.bot.locales import Texts
+from xemo_music_bot.core.models import Track
 from xemo_music_bot.core.services.search import SearchPage
 
 
@@ -36,6 +37,7 @@ class PageCallback(CallbackData, prefix="page"):
 def results_keyboard(page: SearchPage, texts: Texts) -> InlineKeyboardMarkup:
     """Build the buttons for one page of results.
 
+    A track that is downloading shows a disabled loading button instead of its label.
     The pager row exists only when there is more than one page. An arrow at either end is
     a disabled button rather than a missing one, so the row never changes shape.
 
@@ -43,19 +45,24 @@ def results_keyboard(page: SearchPage, texts: Texts) -> InlineKeyboardMarkup:
         page: The page to render.
         texts: The user's catalog.
     """
-    rows = [
-        [
-            InlineKeyboardButton(
-                text=result_label(track),
-                icon_custom_emoji_id=emoji.button_icon(emoji.TRACK),
-                callback_data=TrackCallback(session_id=page.session_id, index=index).pack(),
-            )
-        ]
-        for index, track in page.items
-    ]
+    rows = [[_track_button(page, index, track, texts)] for index, track in page.items]
     if page.pages > 1:
         rows.append(_pager_row(page, texts))
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _track_button(page: SearchPage, index: int, track: Track, texts: Texts) -> InlineKeyboardButton:
+    if index in page.loading:
+        return InlineKeyboardButton(
+            text=texts.track_loading,
+            icon_custom_emoji_id=emoji.button_icon(emoji.LOADING),
+            disabled=DisabledButton(),
+        )
+    return InlineKeyboardButton(
+        text=result_label(track),
+        icon_custom_emoji_id=emoji.button_icon(emoji.TRACK),
+        callback_data=TrackCallback(session_id=page.session_id, index=index).pack(),
+    )
 
 
 def _pager_row(page: SearchPage, texts: Texts) -> list[InlineKeyboardButton]:

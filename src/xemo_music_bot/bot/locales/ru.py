@@ -16,6 +16,7 @@ RU = Texts(
     pager_back="‹ Назад",  # noqa: RUF001
     pager_next="Далее ›",  # noqa: RUF001
     pager_counter="{page} / {pages}",
+    track_loading="Загрузка…",
     no_results=(
         "По запросу «{query}» ничего не нашлось. Попробуйте запрос покороче или другое написание"
     ),
@@ -24,6 +25,15 @@ RU = Texts(
     not_text="Пришлите название трека текстом",
     link_not_supported="Поиск по ссылкам не работает. Пришлите название трека",
     unknown_command="Такой команды нет. Попробуйте /help",
+    too_long="Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче",
+    too_large="Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче",
+    download_failed=(
+        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
+        "Не получилось загрузить «{track}». "  # noqa: RUF001
+        "Нажмите на него ещё раз или выберите другой"
+    ),
+    track_unavailable="SoundCloud не даёт загрузить трек «{track}». Попробуйте другую версию",
+    already_loading="Уже загружается",
     results_expired="Эти результаты устарели. Пришлите название ещё раз",
     cmd_start="Запустить бота",
     cmd_language="Сменить язык",

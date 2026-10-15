@@ -11,6 +11,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
 
 from xemo_music_bot.core.models import DownloadedAudio, Track
+from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
 
@@ -87,3 +88,8 @@ class NoProvider:
 def search_service(unreachable_redis: Redis) -> SearchService:
     # Redis is unreachable on purpose: a handler that unexpectedly uses it fails loudly.
     return SearchService(NoProvider(), SearchSessionsRepository(unreachable_redis))
+
+
+@pytest.fixture
+def delivery_service() -> DeliveryService:
+    return DeliveryService(NoProvider(), max_duration=1000)

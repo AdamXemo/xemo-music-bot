@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from xemo_music_bot.bot import emoji
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.bot.locales.ru import RU
+from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
 
@@ -22,13 +23,14 @@ async def dispatcher(
     session: AsyncSession,
     session_factory: async_sessionmaker[AsyncSession],
     search_service: SearchService,
+    delivery_service: DeliveryService,
 ) -> Dispatcher:
     # A member who has picked "ru" while Telegram says "uk". The first-run picker that
     # `/start` sends before a pick is covered in test_language.py.
     await session.execute(
         insert(DbUser).values(tg_id=CHAT_ID, role="user", language="ru", language_chosen=True)
     )
-    return build_dispatcher(session_factory, frozenset(), search_service)
+    return build_dispatcher(session_factory, frozenset(), search_service, delivery_service)
 
 
 def make_update(text: str) -> Update:

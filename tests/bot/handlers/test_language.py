@@ -33,6 +33,7 @@ from xemo_music_bot.bot.locales import Language, Texts, get_texts
 from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
+from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.language import LanguageService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
@@ -53,8 +54,9 @@ def dispatcher(
     seeded: None,
     session_factory: async_sessionmaker[AsyncSession],
     search_service: SearchService,
+    delivery_service: DeliveryService,
 ) -> Dispatcher:
-    return build_dispatcher(session_factory, frozenset(), search_service)
+    return build_dispatcher(session_factory, frozenset(), search_service, delivery_service)
 
 
 def make_user() -> User:

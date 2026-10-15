@@ -3,6 +3,14 @@
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
+from xemo_music_bot.bot.locales import Texts
+
+
+async def expire_results(callback: CallbackQuery, texts: Texts) -> None:
+    """Tell the user the results are gone and remove the message's dead buttons."""
+    await callback.answer(texts.results_expired)
+    await edit_tapped_message(callback, None)
+
 
 async def edit_tapped_message(
     callback: CallbackQuery, text: str | None, reply_markup: InlineKeyboardMarkup | None = None
@@ -14,7 +22,7 @@ async def edit_tapped_message(
     Args:
         callback: The tap, already answered.
         text: The new message text (HTML), or ``None`` to keep the text as it is.
-        reply_markup: The new buttons; none removes them. Only used together with ``text``.
+        reply_markup: The new buttons; none removes them.
 
     Raises:
         TelegramBadRequest: Telegram rejected the edit for a reason other than "message
@@ -26,7 +34,7 @@ async def edit_tapped_message(
         return
     try:
         if text is None:
-            await callback.message.edit_reply_markup(reply_markup=None)
+            await callback.message.edit_reply_markup(reply_markup=reply_markup)
         else:
             # A text edit without `reply_markup` removes the inline keyboard as well.
             await callback.message.edit_text(text, reply_markup=reply_markup)

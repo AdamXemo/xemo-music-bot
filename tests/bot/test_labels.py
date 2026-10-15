@@ -2,7 +2,7 @@ from unicodedata import east_asian_width
 
 import pytest
 
-from xemo_music_bot.bot.labels import MAX_WIDTH, result_label
+from xemo_music_bot.bot.labels import MAX_NAME_LENGTH, MAX_WIDTH, result_label, track_name
 from xemo_music_bot.core.models import Track
 
 FAMILY = "\U0001f468\u200d\U0001f469\u200d\U0001f467"  # one emoji made of three joined ones
@@ -139,3 +139,22 @@ def test_duration_is_never_cut_and_the_label_stays_in_budget(glyph: str) -> None
 
             assert label.endswith(" · 1:02:15"), (title, artist_length, label)
             assert _display_width(label) <= MAX_WIDTH, (title, artist_length, label)
+
+
+@pytest.mark.parametrize(
+    ("artist", "title", "shown"),
+    [
+        pytest.param(
+            "Daft Punk", "Instant Crush", "Daft Punk - Instant Crush", id="artist-and-title"
+        ),
+        pytest.param("", "Instant Crush", "Instant Crush", id="no-artist"),
+        pytest.param("A" * 30, "t" * 40, "A" * 30 + " - " + "t" * 26 + "…", id="cut-with-ellipsis"),
+    ],
+)
+def test_track_name_is_artist_and_title_cut_to_the_message_budget(
+    artist: str, title: str, shown: str
+) -> None:
+    name = track_name(make_track(title, artist))
+
+    assert name == shown
+    assert len(name) <= MAX_NAME_LENGTH

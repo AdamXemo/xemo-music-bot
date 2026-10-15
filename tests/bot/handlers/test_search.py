@@ -32,6 +32,7 @@ from xemo_music_bot.bot.keyboards.results import TrackCallback
 from xemo_music_bot.bot.labels import result_label
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.core.models import DownloadedAudio, Track
+from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
@@ -85,12 +86,13 @@ async def dispatcher(
     session: AsyncSession,
     session_factory: async_sessionmaker[AsyncSession],
     search_service: SearchService,
+    delivery_service: DeliveryService,
 ) -> Dispatcher:
     # Stored "ru" while Telegram says "uk", so a reply shows which one it used.
     await session.execute(
         insert(DbUser).values(tg_id=MEMBER_ID, role="user", language="ru", language_chosen=True)
     )
-    return build_dispatcher(session_factory, frozenset(), search_service)
+    return build_dispatcher(session_factory, frozenset(), search_service, delivery_service)
 
 
 def make_user() -> User:
@@ -265,19 +267,6 @@ async def test_tap_on_another_users_results_is_treated_as_expired(
     assert isinstance(answer, AnswerCallbackQuery)
     assert answer.text == RU.results_expired
     assert isinstance(edit, EditMessageReplyMarkup)
-
-
-async def test_track_tap_is_answered_silently_until_delivery_exists(
-    bot: Bot, sent_requests: list[TelegramMethod[Any]], dispatcher: Dispatcher
-) -> None:
-    keyboard = await search(dispatcher, bot, sent_requests)
-    sent_requests.clear()
-
-    await dispatcher.feed_update(bot, make_tap(keyboard.inline_keyboard[0][0].callback_data or ""))
-
-    [answer] = sent_requests
-    assert isinstance(answer, AnswerCallbackQuery)
-    assert answer.text is None
 
 
 async def test_search_with_no_matches_replies_with_the_escaped_query(
