@@ -205,6 +205,8 @@ in the results list, the audio and the `tracks` cache:
 | Language picker | `🇬🇧 English`, `🇺🇦 Українська`, `🇷🇺 Русский` (flag, space, name) in one row; stored one `primary` | Owner, 2026-10-15 (flags); `primary` assumed default |
 | Picker row too wide | If a phone cuts a label, the three buttons stack one per row | Assumed default, 2026-10-15 |
 | Download failure | Short new message, the track button is restored; tapping it retries | Assumed default |
+| Go+ tracks (preview or DRM only) | Refused, never send the 30 s clip | Owner, 2026-10-15 |
+| Go+ refusal UX | New message `track_unavailable` (no retry hint, suggests another version); the button is restored as normal | Assumed default, 2026-10-15 |
 | Query length | Over 100 characters is rejected with a hint | Assumed default |
 | Picking the current language | Same as a change: the first-run picker edits into the welcome; the `/language` picker shows `language_set`. No toast, no special copy | Owner-approved default, 2026-10-12 |
 | Language callbacks | Stateless (language code and origin: first run or `/language`); work on any old message, no expiry | Owner-approved default, 2026-10-12 |
@@ -244,6 +246,7 @@ matches the audio player); track buttons use `result_label` instead.
 | too_long | This track is too long for Telegram ({duration}). Try a shorter version | Цей трек задовгий для Telegram ({duration}). Спробуйте коротшу версію | Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче | alert, under 200 chars |
 | too_large | “{track}” is too large for Telegram. Try a shorter version | Трек «{track}» завеликий для Telegram. Спробуйте коротшу версію | Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче | message |
 | download_failed | Couldn't get “{track}”. Tap it again to retry, or pick another one | Не вдалося завантажити «{track}». Натисніть на нього ще раз або виберіть інший | Не получилось загрузить «{track}». Нажмите на него ещё раз или выберите другой | slot `error` may prefix |
+| track_unavailable | SoundCloud doesn't allow downloading “{track}”. Try another version | SoundCloud не дозволяє завантажити трек «{track}». Спробуйте іншу версію | SoundCloud не даёт загрузить трек «{track}». Попробуйте другую версию | message; Go+ preview or DRM; no retry hint, a retry never helps; slot `error` may prefix; UK and RU: proofread |
 | already_loading | Already on its way | Уже завантажується | Уже загружается | toast |
 | results_expired | These results have expired. Send the name again | Ці результати застаріли. Надішліть назву ще раз | Эти результаты устарели. Пришлите название ещё раз | toast |
 | cmd_start | Start the bot | Запустити бота | Запустить бота | command description |
@@ -262,7 +265,7 @@ matches the audio player); track buttons use `result_label` instead.
 | `hello` | start of `welcome` | message entity |
 | `track` | every track button | button icon |
 | `loading` | loading track button | button icon (an animated one suits it) |
-| `error` | start of `search_failed`, `download_failed` | message entity |
+| `error` | start of `search_failed`, `download_failed`, `track_unavailable` | message entity |
 
 ## Edge cases & errors
 
@@ -274,6 +277,12 @@ matches the audio player); track buttons use `result_label` instead.
   and `too_large` is sent as a new message.
 - **Download failure or timeout** (assumed 3 min): the button is restored, and
   `download_failed` is sent as a new message. Tapping the track again retries.
+- **SoundCloud Go+ track** (only a 30 s preview or a DRM stream is offered; Owner,
+  2026-10-15: refuse, never send the clip): search cannot spot them, so they look normal
+  in the list. The tap starts as usual (callback answered without text, loading button);
+  when the provider refuses, the button is restored as normal and `track_unavailable` is
+  sent as a new message (not an alert: the callback is already answered). A later tap
+  repeats the same refusal; nothing is remembered (assumed default, 2026-10-15).
 - **No artwork, or the cover fails to download or convert:** fall through to the
   uploader avatar, then the default cover. The user sees no difference in flow.
 - **Slow download:** the loading button stays, and the chat action keeps repeating. No

@@ -7,6 +7,10 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Delivery (covers): every downloaded track comes with a Telegram-ready thumbnail made
+  from its SoundCloud artwork or the uploader's avatar (square JPEG, at most 320 px,
+  under 200 kB), or a bundled placeholder default cover when there is none or it is
+  broken; Pillow added (ADR 0006). Not sent to users until the rest of Delivery lands.
 - Provider download: `MusicProvider.download()` is an async context manager that fetches a
   SoundCloud track as MP3 (copied if SoundCloud serves MP3, else converted at 192 kbps)
   into a temp dir that is always removed; refuses tracks over about 34 minutes, files over

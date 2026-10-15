@@ -30,7 +30,7 @@ raise a question instead of working against one. A decision that isn't in an ADR
 
 ## Stack
 
-Python 3.13 · aiogram 3 · yt-dlp + ffmpeg · PostgreSQL (SQLAlchemy 2 async + Alembic) ·
+Python 3.13 · aiogram 3 · yt-dlp + ffmpeg · Pillow · PostgreSQL (SQLAlchemy 2 async + Alembic) ·
 Redis · pydantic-settings · uv · ruff · mypy (strict) · pytest · Docker Compose · GitHub Actions.
 
 ## Commands
