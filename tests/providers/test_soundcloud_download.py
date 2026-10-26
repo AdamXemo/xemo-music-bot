@@ -1,14 +1,17 @@
 import asyncio
+import logging
 import threading
-from collections.abc import Mapping
-from io import BytesIO
+from collections.abc import Iterator, Mapping
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any, ClassVar
 
 import pytest
 from PIL import Image
-from yt_dlp.utils import DownloadError
+from rich.console import Console
+from yt_dlp.utils import DownloadCancelled, DownloadError
 
+from xemo_music_bot import timing
 from xemo_music_bot.core.models import Track
 from xemo_music_bot.providers import soundcloud
 from xemo_music_bot.providers.base import (
@@ -397,6 +400,157 @@ class RecordingYoutubeDL:
     def process_ie_result(self, info: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         self.calls.append(("process_ie_result", info, kwargs))
         return {"id": "1", "processed": True}
+
+
+@pytest.fixture
+def plain_timings(caplog: pytest.LogCaptureFixture) -> Iterator[None]:
+    """Log every timing stage as a plain line during the test, then turn timings off."""
+    caplog.set_level(logging.INFO, logger="xemo_music_bot.timing")
+    timing.configure("stages", Console(file=StringIO(), force_terminal=False))
+    yield
+    timing.configure("off")
+
+
+@pytest.mark.usefixtures("plain_timings")
+async def test_download_stages_include_those_reported_from_the_worker_thread(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    def downloader(url: str, directory: Path, cancel: threading.Event) -> Mapping[str, Any]:
+        # Like a yt-dlp hook: only sees the tap's task if the context reached the thread.
+        timing.begin("fetch audio", detail="stage")
+        timing.end("fetch audio")
+        return FakeDownloader()(url, directory, cancel)
+
+    with timing.timed_task("tap"):
+        async with SoundCloudProvider(downloader=downloader).download(TRACK):
+            pass
+
+    assert [m for m in caplog.messages if m.startswith("▶")] == [
+        "▶ tap",
+        "▶ tap: download",
+        "▶ tap: wait for download slot",
+        "▶ tap: fetch audio",
+        "▶ tap: thumbnail",
+    ]
+
+
+def yt_dlp_hook(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
+    """The hook download_with_yt_dlp gives yt-dlp, from a run against a fake YoutubeDL."""
+    monkeypatch.setattr(soundcloud, "YoutubeDL", RecordingYoutubeDL)
+    soundcloud.download_with_yt_dlp("https://sc/1", tmp_path, threading.Event())
+    [hook] = RecordingYoutubeDL.options["progress_hooks"]
+    return hook
+
+
+@pytest.mark.usefixtures("plain_timings")
+def test_download_hooks_ignore_reports_timings_cannot_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    hook = yt_dlp_hook(tmp_path, monkeypatch)
+
+    def broken(_progress: Mapping[str, Any]) -> None:
+        raise TypeError("unsupported operand type(s) for //: 'int' and 'NoneType'")
+
+    monkeypatch.setattr(soundcloud, "_report_stage", broken)
+
+    with timing.timed_task("tap"):
+        hook({"status": "downloading", "total_bytes": None})  # must not fail the download
+
+    assert "Timing hook failed" in [r.getMessage() for r in caplog.records]
+
+
+def test_download_hooks_skip_timing_reports_when_no_task_runs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    hook = yt_dlp_hook(tmp_path, monkeypatch)
+    reports: list[Mapping[str, Any]] = []
+    monkeypatch.setattr(soundcloud, "_report_stage", reports.append)
+
+    hook({"status": "downloading"})
+
+    assert reports == []
+
+
+@pytest.mark.usefixtures("plain_timings")
+def test_download_reports_become_stages_and_unknown_ones_are_ignored(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    reports: list[dict[str, Any]] = [
+        {"status": "downloading", "fragment_index": 1, "fragment_count": 9},
+        {"status": "downloading", "fragment_index": 2, "fragment_count": 9},
+        {"status": "error"},
+        {"status": "finished"},
+        {"status": "started", "postprocessor": "FixupM3u8"},
+        {"status": "started", "postprocessor": "ExtractAudio"},
+        {"status": "processing", "postprocessor": "ExtractAudio"},
+        {"status": "finished", "postprocessor": "ExtractAudio"},
+        {"status": "started", "postprocessor": "MoveFilesAfterDownload"},
+    ]
+
+    with timing.timed_task("tap"):
+        timing.begin("prepare", detail="stage")
+        for report in reports:
+            soundcloud._report_stage(report)
+
+    steps = [m.split(" finished")[0] for m in caplog.messages if m.startswith(("▶ tap:", "✓"))]
+    assert steps == [
+        "▶ tap: prepare",
+        "✓ tap: prepare",
+        "▶ tap: fetch audio",
+        "✓ tap: fetch audio",
+        "▶ tap: convert to MP3",
+        "✓ tap: convert to MP3",
+        "✓ tap",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("progress", "text"),
+    [
+        pytest.param({"fragment_index": 3, "fragment_count": 40}, "3/40 fragments", id="hls"),
+        pytest.param({"downloaded_bytes": 410, "total_bytes": 1000}, "41%", id="bytes"),
+        pytest.param(
+            {"downloaded_bytes": 500, "total_bytes": None, "total_bytes_estimate": 2000},
+            "25%",
+            id="estimate-only",
+        ),
+        pytest.param(
+            {"downloaded_bytes": 2500, "total_bytes_estimate": 2000}, "100%", id="low-estimate"
+        ),
+        pytest.param({"fragment_count": 9}, None, id="fragment-index-unknown"),
+        pytest.param({"downloaded_bytes": 500, "total_bytes": None}, None, id="no-total"),
+        pytest.param({}, None, id="nothing-known"),
+    ],
+)
+def test_download_progress_text(progress: dict[str, Any], text: str | None) -> None:
+    assert soundcloud._progress_text(progress) == text
+
+
+@pytest.mark.parametrize("hooks", ["progress_hooks", "postprocessor_hooks"])
+def test_download_hooks_still_stop_a_cancelled_download(
+    hooks: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(soundcloud, "YoutubeDL", RecordingYoutubeDL)
+    cancel = threading.Event()
+    cancel.set()
+    soundcloud.download_with_yt_dlp("https://sc/1", tmp_path, cancel)
+    [hook] = RecordingYoutubeDL.options[hooks]
+
+    with pytest.raises(DownloadCancelled):
+        hook({"status": "downloading"})
+
+
+@pytest.mark.usefixtures("plain_timings")
+def test_download_times_the_resolve_step(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.setattr(soundcloud, "YoutubeDL", RecordingYoutubeDL)
+
+    with timing.timed_task("tap"):
+        soundcloud.download_with_yt_dlp("https://sc/1", tmp_path, threading.Event())
+
+    assert "▶ tap: resolve" in caplog.messages
+    assert any(m.startswith("✓ tap: resolve finished in") for m in caplog.messages)
 
 
 def test_download_asks_yt_dlp_for_the_cover_without_the_original_size(

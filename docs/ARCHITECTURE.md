@@ -22,7 +22,8 @@ How the system is shaped and why. Keep this file in sync when boundaries change.
 so the future Mini App backend (FastAPI) can reuse it unchanged. The one exception:
 `providers/` and `db/` may import the plain domain types in `core/models.py`
 (dataclasses such as `Track`, which they return and store, and the `Language` literal),
-never services.
+never services. `timing.py` sits outside the layers: every layer may import it, and it
+imports none of them.
 
 ## Package layout (target)
 
@@ -31,6 +32,7 @@ src/xemo_music_bot/
 ├── __main__.py          # entrypoint: build bot + dispatcher, start polling
 ├── config.py            # pydantic-settings; the only place env vars are read
 ├── logging_setup.py     # root logger configuration, called once at startup
+├── timing.py            # opt-in delivery timings (LOG_TIMINGS); neutral, any layer may import it
 ├── bot/
 │   ├── dispatcher.py    # build_dispatcher(): attaches every feature router
 │   ├── commands.py      # command menu and bot descriptions: startup hook, per-user chat menu

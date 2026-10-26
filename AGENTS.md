@@ -30,7 +30,7 @@ raise a question instead of working against one. A decision that isn't in an ADR
 
 ## Stack
 
-Python 3.13 · aiogram 3 · yt-dlp + ffmpeg · Pillow · PostgreSQL (SQLAlchemy 2 async + Alembic) ·
+Python 3.13 · aiogram 3 · yt-dlp + ffmpeg · Pillow · rich · PostgreSQL (SQLAlchemy 2 async + Alembic) ·
 Redis · pydantic-settings · uv · ruff · mypy (strict) · pytest · Docker Compose · GitHub Actions.
 
 ## Commands
@@ -73,6 +73,9 @@ All four checks (format, lint, mypy, pytest) must pass before you call a task do
   literals in handlers.
 - `yt-dlp` is synchronous - always run it via `asyncio.to_thread` behind a concurrency
   limit. Never block the event loop.
+- Code called from yt-dlp hooks must not raise anything except `DownloadCancelled`: yt-dlp
+  turns any other error into a failed download. Guard instrumentation with try/except and
+  log a warning.
 - Every DB access goes through a repository in `db/repositories/`.
 - Config comes only from `config.py` (pydantic-settings, env vars). No `os.getenv` elsewhere.
 

@@ -1,7 +1,9 @@
 import asyncio
+import logging
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from io import StringIO
 from pathlib import Path
 from typing import Any
 
@@ -20,9 +22,11 @@ from aiogram.methods import (
 )
 from aiogram.types import CallbackQuery, Chat, InlineKeyboardMarkup, Message, Update, User
 from redis.asyncio import Redis
+from rich.console import Console
 from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from xemo_music_bot import timing
 from xemo_music_bot.bot.dispatcher import build_dispatcher
 from xemo_music_bot.bot.keyboards.results import PageCallback, TrackCallback
 from xemo_music_bot.bot.labels import result_label
@@ -199,6 +203,25 @@ async def test_tap_sends_the_audio_while_the_button_shows_loading_then_restores(
     page = await search_service.current_page(MEMBER_ID, session_id)
     assert page is not None
     assert page.loading == frozenset()
+
+
+async def test_tap_logs_its_blocks_when_timings_are_on(
+    bot: Bot, dispatcher: Dispatcher, session_id: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.INFO, logger="xemo_music_bot.timing")
+    timing.configure("blocks", Console(file=StringIO(), force_terminal=False))
+    try:
+        await dispatcher.feed_update(bot, tap_track(session_id, 1))
+    finally:
+        timing.configure("off")
+
+    # The fake provider times nothing itself, so only the handler's blocks show.
+    assert [m for m in caplog.messages if m.startswith("▶")] == [
+        "▶ deliver Artist - Song 1",
+        "▶ deliver Artist - Song 1: buttons",
+        "▶ deliver Artist - Song 1: upload",
+        "▶ deliver Artist - Song 1: buttons back",
+    ]
 
 
 async def test_tap_on_a_loading_track_shows_a_toast_and_downloads_nothing(

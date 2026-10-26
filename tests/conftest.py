@@ -13,7 +13,14 @@ from xemo_music_bot.config import get_settings
 from xemo_music_bot.db.redis import create_redis
 from xemo_music_bot.db.session import create_db_engine
 
-SETTINGS_ENV_VARS = ("BOT_TOKEN", "ADMIN_IDS", "LOG_LEVEL", "DATABASE_URL", "REDIS_URL")
+SETTINGS_ENV_VARS = (
+    "BOT_TOKEN",
+    "ADMIN_IDS",
+    "LOG_LEVEL",
+    "LOG_TIMINGS",
+    "DATABASE_URL",
+    "REDIS_URL",
+)
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
 # Port 1 refuses at once, so code that touches this database fails fast and visibly.
 UNREACHABLE_DATABASE_URL = "postgresql+asyncpg://xemo:not-logged@127.0.0.1:1/xemo"

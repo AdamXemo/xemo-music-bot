@@ -11,9 +11,10 @@ from redis.exceptions import RedisError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from xemo_music_bot import timing
 from xemo_music_bot.bot.commands import publish_commands
 from xemo_music_bot.bot.dispatcher import build_dispatcher
-from xemo_music_bot.config import get_settings
+from xemo_music_bot.config import Settings, get_settings
 from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.redis import check_connection as check_redis_connection
@@ -75,7 +76,18 @@ async def close_redis(redis: Redis) -> None:
 def main() -> None:
     """Load settings, configure logging and run the bot with long polling until stopped."""
     settings = get_settings()
-    setup_logging(settings.log_level)
+    live_console = timing.configure(settings.log_timings)
+    # Around all of startup too: a failure such as a malformed token must not leave the
+    # terminal's cursor hidden by the live timings display.
+    try:
+        setup_logging(settings.log_level, live_console)
+        _run(settings)
+    finally:
+        timing.close()
+
+
+def _run(settings: Settings) -> None:
+    """Build the bot, its services and dispatcher, then poll until stopped."""
     logger.info("Settings loaded, %d admin(s) configured", len(settings.admin_ids))
     # HTML for every message (MVP spec): custom emoji slots render as <tg-emoji> tags.
     bot = Bot(

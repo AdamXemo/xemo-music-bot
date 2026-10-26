@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import contextvars
 import logging
 import shutil
 import tempfile
@@ -14,6 +15,7 @@ from typing import Any, Final
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadCancelled, YoutubeDLError
 
+from xemo_music_bot import timing
 from xemo_music_bot.core.metadata import clean_track_name
 from xemo_music_bot.core.models import DownloadedAudio, Track
 from xemo_music_bot.providers.base import (
@@ -96,9 +98,17 @@ def download_with_yt_dlp(url: str, directory: Path, cancel: threading.Event) -> 
         YoutubeDLError: If extraction, download or conversion fails or is cancelled.
     """
 
-    def stop_if_cancelled(_progress: Mapping[str, Any]) -> None:
+    def on_progress(progress: Mapping[str, Any]) -> None:
         if cancel.is_set():
             raise DownloadCancelled
+        if not timing.active():
+            return
+        # yt-dlp turns any other error raised in a hook into a failed download, and
+        # timings must never cost a user their track.
+        try:
+            _report_stage(progress)
+        except Exception:
+            logger.warning("Timing hook failed", exc_info=True)
 
     options: dict[str, Any] = {
         # Prefer SoundCloud's own MP3 (copied, no re-encoding). Previews rank last, so
@@ -119,9 +129,9 @@ def download_with_yt_dlp(url: str, directory: Path, cancel: threading.Event) -> 
         "writethumbnail": True,
         "noplaylist": True,
         "noprogress": True,
-        "progress_hooks": [stop_if_cancelled],
+        "progress_hooks": [on_progress],
         # Also checked before each post-processing step, so a timeout skips ffmpeg.
-        "postprocessor_hooks": [stop_if_cancelled],
+        "postprocessor_hooks": [on_progress],
         "socket_timeout": 15,
         "retries": 2,
         "fragment_retries": 2,
@@ -130,10 +140,56 @@ def download_with_yt_dlp(url: str, directory: Path, cancel: threading.Event) -> 
     with YoutubeDL(options) as ydl:
         # Two steps instead of extract_info(download=True), so the cover sizes can be
         # narrowed before yt-dlp fetches one.
-        found: dict[str, Any] = ydl.extract_info(url, download=False, process=False)
+        with timing.stage("resolve", detail="stage"):
+            found: dict[str, Any] = ydl.extract_info(url, download=False, process=False)
         found["thumbnails"] = _cover_sizes(found.get("thumbnails"))
+        # Format choice and the cover fetch; the first progress report ends it.
+        timing.begin("prepare", detail="stage")
         info: Mapping[str, Any] = ydl.process_ie_result(found, download=True)
+        timing.end("prepare")  # in case no progress report came
     return info
+
+
+def _report_stage(progress: Mapping[str, Any]) -> None:
+    """Turn one yt-dlp progress or post-processing report into timing stages.
+
+    Runs in the download thread, only while a timed task runs. Post-processing reports
+    carry a ``postprocessor`` key; of those only ffmpeg's conversion is worth a stage.
+    Other statuses (``error``, ``processing``) and steps (fixups, moving files) are
+    ignored.
+    """
+    status = progress.get("status")
+    if "postprocessor" in progress:
+        if progress.get("postprocessor") != "ExtractAudio":
+            return
+        if status == "started":
+            timing.begin("convert to MP3", detail="stage")
+        elif status == "finished":
+            timing.end("convert to MP3")
+        return
+    if status == "downloading":
+        timing.end("prepare")
+        timing.begin("fetch audio", detail="stage")
+        if (text := _progress_text(progress)) is not None:
+            timing.update("fetch audio", text)
+    elif status == "finished":
+        timing.end("fetch audio")
+
+
+def _progress_text(progress: Mapping[str, Any]) -> str | None:
+    """Describe how far a download is, or ``None`` if yt-dlp does not know yet.
+
+    HLS downloads count fragments; their byte total is only an estimate, if any.
+    """
+    index, count = progress.get("fragment_index"), progress.get("fragment_count")
+    if count and index is not None:
+        return f"{index}/{count} fragments"
+    total = progress.get("total_bytes") or progress.get("total_bytes_estimate")
+    downloaded = progress.get("downloaded_bytes")
+    if total and downloaded is not None:
+        # An estimated total can be too low, so cap what is shown.
+        return f"{min(int(downloaded * 100 // total), 100)}%"
+    return None
 
 
 class SoundCloudProvider:
@@ -203,7 +259,8 @@ class SoundCloudProvider:
 
         directory = Path(tempfile.mkdtemp(prefix="xemo-"))
         try:
-            info = await self._run_download(track.page_url, directory)
+            with timing.stage("download", detail="block"):
+                info = await self._run_download(track.page_url, directory)
             yield await _to_audio(info, track, directory)
         finally:
             # A single small file: quick enough to do inline, and it keeps the cleanup
@@ -240,8 +297,12 @@ class SoundCloudProvider:
                 with contextlib.suppress(RuntimeError):
                     loop.call_soon_threadsafe(_set_done, finished)
 
+        timing.begin("wait for download slot", detail="stage")
         async with self._download_slots:
-            outcome = loop.run_in_executor(None, work)
+            timing.end("wait for download slot")
+            # Unlike to_thread, run_in_executor does not copy contextvars; the copy lets
+            # the yt-dlp hooks in the thread add stages to this tap's timings.
+            outcome = loop.run_in_executor(None, contextvars.copy_context().run, work)
             try:
                 # Shielded: a timeout must not abandon the thread; we wait for it below.
                 return await asyncio.wait_for(asyncio.shield(outcome), self._download_timeout)
@@ -301,11 +362,13 @@ async def _to_audio(info: Mapping[str, Any], track: Track, directory: Path) -> D
     if size > UPLOAD_LIMIT_BYTES:
         raise TooLargeError(f"MP3 is {size} bytes, the limit is {UPLOAD_LIMIT_BYTES}")
     duration = info.get("duration")
+    with timing.stage("thumbnail", detail="block"):
+        thumbnail = await prepare_thumbnail(_written_cover(info), directory)
     return DownloadedAudio(
         path=path,
         duration=round(duration) if isinstance(duration, int | float) else track.duration,
         size=size,
-        thumbnail=await prepare_thumbnail(_written_cover(info), directory),
+        thumbnail=thumbnail,
     )
 
 

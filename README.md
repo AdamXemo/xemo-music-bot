@@ -40,6 +40,7 @@ committed):
 | `BOT_TOKEN`    | yes      | Token from @BotFather                                           |
 | `ADMIN_IDS`    | no       | JSON list of admin Telegram user IDs, e.g. `[123456789]`        |
 | `LOG_LEVEL`    | no       | `DEBUG`, `INFO` (default), `WARNING`, `ERROR` or `CRITICAL`     |
+| `LOG_TIMINGS`  | no       | Developer timings of each delivery: `off` (default), `blocks` (download, thumbnail, upload, buttons) or `stages` (every step). Live spinner in a terminal, plain `INFO` log lines elsewhere (hidden by `LOG_LEVEL=WARNING`) |
 | `DATABASE_URL` | no       | asyncpg Postgres URL; defaults to the `docker compose` database |
 | `REDIS_URL`    | no       | Redis URL; defaults to the `docker compose` Redis (`redis://127.0.0.1:6379/0`) |
 
