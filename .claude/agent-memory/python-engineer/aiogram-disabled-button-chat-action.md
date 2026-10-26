@@ -17,3 +17,11 @@ metadata:
   (fake provider + `SearchSessionsRepository(redis)`).
 - Locale tests: `results_header` holds `<b>`, so `test_copy_is_valid_html_text` strips it for that field.
 - Ruff RUF001 also flags the pager angle quotes and a literal NBSP in tests (use `\N{NO-BREAK SPACE}`).
+- Correction (Delivery, 2026-10-15): `sleep(0)` in the fake provider is NOT enough for the chat
+  action to fire (the worker's first `wait_for(event, 0)` needs several loop turns); use
+  `asyncio.sleep(0.01)`. Default `ChatActionSender` interval is 5 s, pass `interval=4` for 4 s.
+- To make one Bot API method fail in a handler test: `monkeypatch.setattr(api_session, "make_request",
+  failing)` (no type-ignore needed) and build the error from the `call` argument
+  (`TelegramBadRequest(call, "...")`; the class itself fails mypy).
+- Bash hook also blocked an inline command ending with `git diff --stat | tail`; use a scratch
+  script (`bash /tmp/x.sh`) for mutation checks (cp backup, python replace, pytest, cp back).

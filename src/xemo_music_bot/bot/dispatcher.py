@@ -3,9 +3,10 @@
 from aiogram import Dispatcher
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from xemo_music_bot.bot.handlers import fallback, language, search, start
+from xemo_music_bot.bot.handlers import delivery, fallback, language, search, start
 from xemo_music_bot.bot.middlewares.access import AccessMiddleware
 from xemo_music_bot.bot.middlewares.db_session import DbSessionMiddleware
+from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 
 
@@ -13,6 +14,7 @@ def build_dispatcher(
     session_factory: async_sessionmaker[AsyncSession],
     admin_ids: frozenset[int],
     search_service: SearchService,
+    delivery_service: DeliveryService,
 ) -> Dispatcher:
     """Create a dispatcher with the middlewares and every feature router attached.
 
@@ -21,8 +23,9 @@ def build_dispatcher(
         admin_ids: Telegram IDs from config with admin rights.
         search_service: Long-lived service handlers get as ``search_service``; it holds no
             per-update state, unlike the database session.
+        delivery_service: Long-lived service handlers get as ``delivery_service``.
     """
-    dispatcher = Dispatcher(search_service=search_service)
+    dispatcher = Dispatcher(search_service=search_service, delivery_service=delivery_service)
     # Outer middleware on update: the session exists before any filter runs, and the
     # access middleware (registered after this one) can read it.
     dispatcher.update.outer_middleware(DbSessionMiddleware(session_factory))
@@ -31,6 +34,7 @@ def build_dispatcher(
     dispatcher.include_router(language.build_router())
     # After the command routers: its unknown-command and non-text handlers match anything.
     dispatcher.include_router(search.build_router())
+    dispatcher.include_router(delivery.build_router())
     # Last: aiogram tries routers in order, and the fallback matches every callback.
     dispatcher.include_router(fallback.build_router())
     return dispatcher

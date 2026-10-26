@@ -7,6 +7,12 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Delivery: tapping a track sends it as an audio message with performer, title, duration
+  and cover; the tapped button turns into a disabled loading button and the chat shows
+  "sending a file" until the audio arrives. Too long tracks get an alert, a second tap
+  gets a toast, and files over the limit, Go+ previews and failed downloads get a message
+  while the button comes back. Every track is downloaded again on each tap until the
+  `file_id` cache lands.
 - Delivery (covers): every downloaded track comes with a Telegram-ready thumbnail made
   from its SoundCloud artwork or the uploader's avatar (square JPEG, at most 320 px,
   under 200 kB), or a bundled placeholder default cover when there is none or it is

@@ -71,7 +71,7 @@ and Russian. Keep everything else as simple as it can be.
 - [x] Search UX: text message → one results message, inline buttons, pagination by edit
 - [x] Provider download: `MusicProvider.download()` via yt-dlp in `asyncio.to_thread`
       behind a semaphore, temp dir always cleaned up, max-duration guard (50 MB upload cap)
-- [ ] Delivery: track button → `DeliveryService` → `sendAudio` with title/artist/cover/duration
+- [x] Delivery: track button → `DeliveryService` → `sendAudio` with title/artist/cover/duration
 - [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
       and friends' devices; decides whether cards replace track buttons later
 - [ ] `file_id` cache: `tracks` table; repeat requests are instant, no re-download

@@ -1,4 +1,4 @@
-"""Text of the track buttons in the results list (feature spec: "Track label").
+"""Track names for buttons and messages (feature spec: "Track label" and "Copy").
 
 The label is ``Title - Artist · m:ss`` and has a fixed budget, so Telegram never cuts a
 button on its own and the duration always shows. Titles and artists arrive cleaned
@@ -11,6 +11,8 @@ from typing import Final
 from xemo_music_bot.core.models import Track
 
 MAX_WIDTH: Final = 32
+# Longest ``Artist - Title`` in a message; the audio player shows about as much.
+MAX_NAME_LENGTH: Final = 60
 # Fewer visible artist characters than this (the ellipsis included) are not worth showing.
 _MIN_ARTIST_WIDTH: Final = 5
 _ELLIPSIS: Final = "…"
@@ -35,7 +37,7 @@ def result_label(track: Track) -> str:
         2) unless the duration alone is longer. The duration is never cut; the artist is
         shortened first, then dropped, and only then is the title shortened.
     """
-    suffix = f" · {_format_duration(track.duration)}"
+    suffix = f" · {format_duration(track.duration)}"
     budget = MAX_WIDTH - len(suffix)
     title = _units(track.title)
     artist = _units(track.artist)
@@ -52,7 +54,22 @@ def result_label(track: Track) -> str:
     return f"{_fit_title(title, budget)}{suffix}"
 
 
-def _format_duration(seconds: int) -> str:
+def track_name(track: Track) -> str:
+    """Return ``Artist - Title`` for a message, cut to ``MAX_NAME_LENGTH`` with an ellipsis.
+
+    Args:
+        track: A track with cleaned title and artist.
+
+    Returns:
+        Plain text: the caller escapes it for HTML. Just the title if there is no artist.
+    """
+    name = f"{track.artist}{_ARTIST_SEPARATOR}{track.title}" if track.artist else track.title
+    if len(name) <= MAX_NAME_LENGTH:
+        return name
+    return name[: MAX_NAME_LENGTH - 1].rstrip() + _ELLIPSIS
+
+
+def format_duration(seconds: int) -> str:
     """Format as ``m:ss``, or ``h:mm:ss`` from one hour up."""
     minutes, secs = divmod(max(seconds, 0), 60)
     hours, minutes = divmod(minutes, 60)

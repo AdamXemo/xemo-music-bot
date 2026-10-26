@@ -88,6 +88,17 @@ tests/                   # mirrors src/ layout
    the `results_expired` toast and removes the keyboard.
 
 ### Delivery (tap a track)
+0. The handler claims the track with `SearchService.start_loading` (a loading mark in
+   Redis; a second tap gets `already_loading`), answers `too_long` as an alert if
+   `DeliveryService.is_too_long`, then redraws the keyboard from the stored state so the
+   track's button is a disabled loading button, and runs the `upload_document` chat
+   action. `DeliveryService.deliver(track, send)` takes a `send` callback, so `core`
+   stays free of aiogram; the handler's callback calls `sendAudio`. A `finally` always
+   releases the mark and redraws the keyboard (skipped silently if the message is gone).
+   Failures become a new message: `too_large`, `track_unavailable` (Go+) or
+   `download_failed` (any other provider or Telegram error).
+   Steps 1-2 and 4 below come with the `file_id` cache item; until then every tap
+   downloads.
 1. `DeliveryService.get_audio(track_ref)` checks `tracks.tg_file_id`.
 2. **Hit** → send by `file_id` instantly (no download, no upload).
 3. **Miss** → `async with provider.download(track) as audio` (download semaphore, then
