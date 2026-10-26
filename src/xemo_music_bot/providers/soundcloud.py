@@ -22,6 +22,7 @@ from xemo_music_bot.providers.base import (
     TooLargeError,
     TooLongError,
 )
+from xemo_music_bot.providers.covers import prepare_thumbnail
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ MAX_DURATION: Final = UPLOAD_LIMIT_BYTES * 8 // (MP3_BITRATE_KBPS * 1000)
 # yt-dlp lists every size SoundCloud serves; 500x500 is the smallest JPEG at or above
 # Telegram's 320x320 audio thumbnail, so delivery only has to scale it down.
 _ARTWORK_ID: Final = "t500x500"
+_MAX_COVER_SIDE: Final = 500
 
 _SEARCH_OPTIONS: Final[Mapping[str, Any]] = {
     # Search entries already carry title, uploader, duration and artwork. Resolving each
@@ -112,6 +114,9 @@ def download_with_yt_dlp(url: str, directory: Path, cancel: threading.Event) -> 
             }
         ],
         "outtmpl": str(directory / "%(id)s.%(ext)s"),
+        # The cover lands next to the audio (as ``<id>.jpg``) and is removed with it.
+        # yt-dlp tries the largest size first and the next one if a fetch fails.
+        "writethumbnail": True,
         "noplaylist": True,
         "noprogress": True,
         "progress_hooks": [stop_if_cancelled],
@@ -123,7 +128,11 @@ def download_with_yt_dlp(url: str, directory: Path, cancel: threading.Event) -> 
         "logger": logging.getLogger("yt_dlp"),
     }
     with YoutubeDL(options) as ydl:
-        info: Mapping[str, Any] = ydl.extract_info(url, download=True)
+        # Two steps instead of extract_info(download=True), so the cover sizes can be
+        # narrowed before yt-dlp fetches one.
+        found: dict[str, Any] = ydl.extract_info(url, download=False, process=False)
+        found["thumbnails"] = _cover_sizes(found.get("thumbnails"))
+        info: Mapping[str, Any] = ydl.process_ie_result(found, download=True)
     return info
 
 
@@ -195,7 +204,7 @@ class SoundCloudProvider:
         directory = Path(tempfile.mkdtemp(prefix="xemo-"))
         try:
             info = await self._run_download(track.page_url, directory)
-            yield _to_audio(info, track)
+            yield await _to_audio(info, track, directory)
         finally:
             # A single small file: quick enough to do inline, and it keeps the cleanup
             # from being skipped when the task is cancelled while we await.
@@ -270,8 +279,8 @@ async def _wait_uncancellable(future: asyncio.Future[None]) -> None:
         raise asyncio.CancelledError
 
 
-def _to_audio(info: Mapping[str, Any], track: Track) -> DownloadedAudio:
-    """Check a finished download and describe its MP3 file.
+async def _to_audio(info: Mapping[str, Any], track: Track, directory: Path) -> DownloadedAudio:
+    """Check a finished download, then describe its MP3 file and make its thumbnail.
 
     Raises:
         PreviewOnlyError: If the chosen format is SoundCloud's 30 s preview of the track.
@@ -296,7 +305,32 @@ def _to_audio(info: Mapping[str, Any], track: Track) -> DownloadedAudio:
         path=path,
         duration=round(duration) if isinstance(duration, int | float) else track.duration,
         size=size,
+        thumbnail=await prepare_thumbnail(_written_cover(info), directory),
     )
+
+
+def _cover_sizes(thumbnails: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
+    """Keep the cover sizes worth fetching, or all of them if none is known to be small.
+
+    SoundCloud lists sizes from 16 px up to an ``original`` of unknown size that can be
+    several MB; the downloader needs no more than ``_MAX_COVER_SIDE``.
+    """
+    fitting = [
+        thumb for thumb in thumbnails or [] if 0 < (thumb.get("width") or 0) <= _MAX_COVER_SIDE
+    ]
+    return fitting or thumbnails
+
+
+def _written_cover(info: Mapping[str, Any]) -> Path | None:
+    """The cover file yt-dlp saved for ``writethumbnail``, or ``None`` if it saved none.
+
+    yt-dlp picks the track's artwork, or the uploader's avatar when there is none.
+    """
+    for thumb in info.get("thumbnails") or []:
+        filepath = thumb.get("filepath")
+        if isinstance(filepath, str):
+            return Path(filepath)
+    return None
 
 
 def _to_track(entry: Mapping[str, Any]) -> Track | None:

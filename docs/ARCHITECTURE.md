@@ -50,8 +50,11 @@ src/xemo_music_bot/
 │       ├── access.py    # AccessService: admin / member / blocked / stranger
 │       ├── search.py    # SearchService: search, pages, loading marks over search sessions
 │       └── language.py  # LanguageService: change and read users' languages
+├── assets/
+│   └── default_cover.jpg  # thumbnail for tracks without a usable cover (scripts/make_default_cover.py)
 ├── providers/
 │   ├── base.py          # MusicProvider protocol
+│   ├── covers.py        # cover image -> Telegram audio thumbnail (Pillow, ADR 0006)
 │   ├── soundcloud.py
 │   └── youtube.py
 └── db/
@@ -62,6 +65,7 @@ src/xemo_music_bot/
         ├── users.py     # UsersRepository
         └── search_sessions.py  # SearchSessionsRepository (Redis)
 migrations/              # Alembic
+scripts/                 # one-off developer scripts, not part of the bot
 tests/                   # mirrors src/ layout
 ```
 
@@ -91,6 +95,10 @@ tests/                   # mirrors src/ layout
    exits, however it exits) → `sendAudio` with metadata + cover → store returned `file_id`.
    The provider refuses over-long tracks before downloading (`TooLongError`), files over
    50 MB (`TooLargeError`) and Go+ previews or DRM-locked tracks (`PreviewOnlyError`).
+   yt-dlp saves the cover (the artwork, else the uploader's avatar) into the same temp
+   dir; `providers/covers.py` turns it into the thumbnail in a thread (square JPEG, at
+   most 320 px, under 200 kB). `audio.thumbnail` is always set: a missing or unusable
+   cover becomes the bundled default cover, never an error.
 4. Concurrent requests for the same track await the same in-flight download.
 
 ### Access

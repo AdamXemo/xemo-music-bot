@@ -51,6 +51,8 @@ class MusicProvider(Protocol):
         Use it as ``async with provider.download(track) as audio:``. The audio file
         lives in a temporary directory that is removed when the block exits, however it
         exits, so a caller cannot leak files and audio is never kept after the upload.
+        The audio always comes with a thumbnail: the track's cover, or the default cover
+        if the source has none or it cannot be used; a bad cover never fails a download.
 
         Args:
             track: The track to fetch, as returned by ``search``.

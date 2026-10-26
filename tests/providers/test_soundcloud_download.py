@@ -1,10 +1,12 @@
 import asyncio
 import threading
 from collections.abc import Mapping
+from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
+from PIL import Image
 from yt_dlp.utils import DownloadError
 
 from xemo_music_bot.core.models import Track
@@ -15,6 +17,7 @@ from xemo_music_bot.providers.base import (
     TooLargeError,
     TooLongError,
 )
+from xemo_music_bot.providers.covers import DEFAULT_COVER
 from xemo_music_bot.providers.soundcloud import MAX_DURATION, SoundCloudProvider
 
 TRACK = Track(
@@ -38,11 +41,13 @@ class FakeDownloader:
         info: Mapping[str, Any] | None = None,
         error: Exception | None = None,
         writes_file: bool = True,
+        cover: bytes | None = None,
     ) -> None:
         self.content = content
         self.info = {"format_id": "hls_aac_160k", "duration": 299.6, **(info or {})}
         self.error = error
         self.writes_file = writes_file
+        self.cover = cover
         self.calls: list[tuple[str, Path]] = []
 
     @property
@@ -55,9 +60,19 @@ class FakeDownloader:
             raise self.error
         if not self.writes_file:
             return self.info
+        thumbnails = [{"id": "t300x300", "url": "https://i1.sndcdn.com/a-t300x300.jpg"}]
+        if self.cover is not None:
+            # yt-dlp's writethumbnail records the saved file on the thumbnail it fetched.
+            cover = directory / "92297366.jpg"
+            cover.write_bytes(self.cover)
+            thumbnails.append({"id": "t500x500", "filepath": str(cover)})
         path = directory / "92297366.mp3"
         path.write_bytes(self.content)
-        return {**self.info, "requested_downloads": [{"filepath": str(path)}]}
+        return {
+            **self.info,
+            "thumbnails": thumbnails,
+            "requested_downloads": [{"filepath": str(path)}],
+        }
 
 
 async def test_download_yields_mp3_and_removes_its_directory_afterwards() -> None:
@@ -81,6 +96,56 @@ async def test_download_removes_directory_when_the_upload_fails() -> None:
             raise RuntimeError("upload failed")
 
     assert not downloader.directory.exists()
+
+
+def jpeg(width: int, height: int) -> bytes:
+    buffer = BytesIO()
+    Image.new("RGB", (width, height), "blue").save(buffer, "JPEG")
+    return buffer.getvalue()
+
+
+async def test_download_yields_a_thumbnail_of_the_cover_and_removes_it_afterwards() -> None:
+    downloader = FakeDownloader(cover=jpeg(500, 500))
+
+    async with SoundCloudProvider(downloader=downloader).download(TRACK) as audio:
+        assert audio.thumbnail.parent == downloader.directory
+        with Image.open(audio.thumbnail) as thumbnail:
+            assert (thumbnail.format, thumbnail.size) == ("JPEG", (320, 320))
+
+    assert not audio.thumbnail.exists()
+
+
+async def test_download_uses_the_default_cover_when_yt_dlp_saved_none() -> None:
+    async with SoundCloudProvider(downloader=FakeDownloader()).download(TRACK) as audio:
+        assert audio.thumbnail == DEFAULT_COVER
+
+    assert DEFAULT_COVER.is_file()  # the cleanup must never touch the bundled file
+
+
+async def test_download_uses_the_default_cover_when_the_cover_is_broken() -> None:
+    downloader = FakeDownloader(cover=b"<html>Forbidden</html>")
+
+    async with SoundCloudProvider(downloader=downloader).download(TRACK) as audio:
+        assert audio.thumbnail == DEFAULT_COVER
+        assert audio.path.is_file()
+
+
+@pytest.mark.parametrize(
+    ("widths", "kept"),
+    [
+        pytest.param([16, 300, 400, 500, None], [16, 300, 400, 500], id="drops-original"),
+        pytest.param([None], [None], id="keeps-unknown-sizes-when-nothing-else"),
+        pytest.param([640, 1280], [640, 1280], id="keeps-all-when-none-is-small-enough"),
+    ],
+)
+def test_cover_sizes_skip_covers_over_500_px(
+    widths: list[int | None], kept: list[int | None]
+) -> None:
+    thumbnails = [{"url": f"https://i1.sndcdn.com/{w}.jpg", "width": w} for w in widths]
+
+    narrowed = soundcloud._cover_sizes(thumbnails)
+
+    assert [thumb["width"] for thumb in narrowed or []] == kept
 
 
 async def test_download_uses_track_duration_when_yt_dlp_reports_none() -> None:
@@ -305,3 +370,47 @@ async def test_download_runs_at_most_max_downloads_yt_dlp_calls() -> None:
     await asyncio.gather(*(get_audio() for _ in range(4)))
 
     assert peak == 2
+
+
+class RecordingYoutubeDL:
+    """Stands in for yt_dlp.YoutubeDL and records how the downloader drives it."""
+
+    calls: ClassVar[list[tuple[str, Any, dict[str, Any]]]] = []
+    options: ClassVar[dict[str, Any]] = {}
+
+    def __init__(self, options: dict[str, Any]) -> None:
+        RecordingYoutubeDL.options = options
+
+    def __enter__(self) -> "RecordingYoutubeDL":
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        return None
+
+    def extract_info(self, url: str, **kwargs: Any) -> dict[str, Any]:
+        self.calls.append(("extract_info", url, kwargs))
+        return {
+            "id": "1",
+            "thumbnails": [{"id": "t500x500", "width": 500}, {"id": "original"}],
+        }
+
+    def process_ie_result(self, info: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+        self.calls.append(("process_ie_result", info, kwargs))
+        return {"id": "1", "processed": True}
+
+
+def test_download_asks_yt_dlp_for_the_cover_without_the_original_size(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    RecordingYoutubeDL.calls = []
+    monkeypatch.setattr(soundcloud, "YoutubeDL", RecordingYoutubeDL)
+
+    info = soundcloud.download_with_yt_dlp("https://sc/1", tmp_path, threading.Event())
+
+    (_, url, extract_kwargs), (_, found, process_kwargs) = RecordingYoutubeDL.calls
+    assert url == "https://sc/1"
+    assert extract_kwargs == {"download": False, "process": False}
+    assert process_kwargs == {"download": True}
+    assert [size["id"] for size in found["thumbnails"]] == ["t500x500"]
+    assert RecordingYoutubeDL.options["writethumbnail"] is True
+    assert info == {"id": "1", "processed": True}
