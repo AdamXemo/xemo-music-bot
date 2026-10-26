@@ -3,4 +3,5 @@
 - [DB quirks](db-quirks.md) - host PG on 5432 (DB_PORT=55432), PG18 volume path, alembic check skips CHECKs, multi-row insert keys
 - [Redis quirks](redis-quirks.md) - redis-py 8.1 is typed (no narrowing), pipeline usage, TEST_REDIS_URL index 15
 - [yt-dlp quirks](yt-dlp-quirks.md) - 2026.8.19 flat scsearch entry shape, Go+ previews, writethumbnail/process=False, Pillow notes
+- [rich quirks](rich-quirks.md) - rich 15 Live lock order, stale frame after print, test consoles, run_in_executor contextvars
 - [Disabled button, chat action](aiogram-disabled-button-chat-action.md) - DisabledButton exists in 3.31, ChatActionSender in tests, catch-all router order
