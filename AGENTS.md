@@ -99,6 +99,17 @@ main context free of implementation detail. Subagents report back to the main se
 `python-engineer` writes production code and tests, and other roles edit only what their
 role names. Trivial fixes (a typo, a one-line doc change) the main session may do itself.
 
+Every implementation brief opens with three lines, so the brief, the review and the PR
+measure against the same thing:
+
+- **Why** - the problem in 1-3 sentences, from the spec or roadmap line.
+- **Done when** - the acceptance criteria as checkboxes; they become the PR's Done when.
+- **Size** - the estimated changed lines (code / tests / docs). Passing it by half is a
+  stop-and-report point, not something to discover in the PR.
+
+`qa-reviewer` reviews against the same Done when, and its Review notes block goes into the
+PR as is.
+
 | Agent             | Role                                                    | Status  |
 |-------------------|---------------------------------------------------------|---------|
 | `agent-engineer`  | Designs, audits and improves the other agents           | ✅ ready |

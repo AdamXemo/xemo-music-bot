@@ -85,6 +85,10 @@ Versioning: [SemVer](https://semver.org/).
   logged. Menu entries for `/help`, `/invite`, `/revoke` and `/ban` come with their own items.
 
 ### Changed
+- Agent loop: every implementation brief opens with Why, Done when and Size (AGENTS.md);
+  `python-engineer` builds against Done when and stops at a mid-task size checkpoint;
+  `qa-reviewer` reports Done when per item, flags decisions without an ADR and ends with a
+  ready-to-paste Review notes block.
 - PR template: roadmap and size line, Why, What changes, a reading guide in review order,
   Decisions, Review notes, collapsed Learn and All changes blocks, and a Done when list;
   the secrets and local-checks lines are gone. `python-engineer` drafts PRs to match.
