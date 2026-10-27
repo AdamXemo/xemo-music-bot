@@ -85,6 +85,8 @@ Versioning: [SemVer](https://semver.org/).
   logged. Menu entries for `/help`, `/invite`, `/revoke` and `/ban` come with their own items.
 
 ### Changed
+- Roadmap: new Phase 3 "Friends' requests" (original covers, lyrics, albums, chords spike)
+  from the friend group's first test; later phases move up by one.
 - Agent loop: every implementation brief opens with Why, Done when and Size (AGENTS.md);
   `python-engineer` builds against Done when and stops at a mid-task size checkpoint;
   `qa-reviewer` reports Done when per item, flags decisions without an ADR and ends with a
