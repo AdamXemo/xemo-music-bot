@@ -82,6 +82,22 @@ index it names, so use a spare one and never index 0 (the development one):
 TEST_REDIS_URL=redis://127.0.0.1:6379/15 uv run pytest
 ```
 
+### Run with Docker
+
+To run the bot on a machine without a Python setup (needs `BOT_TOKEN` in `.env`):
+
+```bash
+docker compose up -d --build     # build the image, start the bot, Postgres and Redis
+docker compose logs -f bot       # follow the bot's log
+docker compose down              # stop everything; the database stays in its volume
+git pull && docker compose up -d --build   # update to the latest code
+```
+
+The bot applies pending migrations on start and reaches the database and Redis by their
+compose service names, so the same `.env` works for `uv run` and Docker. Only one bot
+instance per token may poll Telegram: stop a local `uv run` bot before starting this one.
+Running containers come back after a reboot until `docker compose down`.
+
 ## Documentation
 
 - [Roadmap](docs/ROADMAP.md) · [Architecture](docs/ARCHITECTURE.md) ·

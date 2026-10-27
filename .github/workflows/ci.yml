@@ -67,3 +67,14 @@ jobs:
 
       - name: Test
         run: uv run pytest --cov
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      # Build only, no push: a broken Dockerfile should fail the PR, not the first deploy.
+      - name: Build image
+        run: docker build .

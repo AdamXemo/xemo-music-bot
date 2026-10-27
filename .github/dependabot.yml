@@ -12,6 +12,14 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
+  # The Dockerfile's Python base image and the pinned uv image.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+
   - package-ecosystem: github-actions
     directory: /
     schedule:

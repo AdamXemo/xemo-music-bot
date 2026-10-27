@@ -1,0 +1,33 @@
+# Keep secrets and everything the image does not need out of the build context.
+
+# Secrets and local config
+.env
+.env.*
+cookies*.txt
+
+# Git, editors and agent tooling
+.git
+.github
+.claude
+
+# Local environment and caches
+.venv
+.coverage
+htmlcov
+.mypy_cache
+.pytest_cache
+.ruff_cache
+**/__pycache__
+**/*.egg-info
+build
+dist
+
+# Downloaded audio, if any is left over
+downloads
+tmp
+*.mp3
+
+# Not needed at runtime
+tests
+docs
+scripts

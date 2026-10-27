@@ -1,7 +1,29 @@
-# Local infrastructure. The Docker roadmap item adds the bot service.
+# The bot plus its Postgres and Redis. `docker compose up -d --build` runs all three;
+# `docker compose up -d db redis` starts only the infrastructure for local development.
 services:
+  bot:
+    build: .
+    # Optional so `docker compose up -d db redis` works on a clone without .env; a missing
+    # BOT_TOKEN then shows up as the bot's own config error in its log.
+    env_file:
+      - path: .env
+        required: false
+    # A tiny init as PID 1: forwards SIGTERM during migrations and reaps ffmpeg children.
+    init: true
+    # The container reaches the other services by name, so these override the host-side
+    # URLs in .env and the same file serves `uv run` and Docker.
+    environment:
+      DATABASE_URL: postgresql+asyncpg://xemo:xemo@db:5432/xemo_music_bot
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
   db:
     image: postgres:18-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: xemo
       POSTGRES_PASSWORD: xemo
@@ -19,6 +41,7 @@ services:
       retries: 10
   redis:
     image: redis:8-alpine
+    restart: unless-stopped
     # A cache only (ADR 0004): nothing in it must survive a restart, so persistence is off.
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:

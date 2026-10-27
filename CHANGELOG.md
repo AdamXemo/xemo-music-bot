@@ -7,6 +7,9 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Docker: a `Dockerfile` (multi-stage, ffmpeg, non-root, migrations on start) and a `bot`
+  service in `docker-compose.yml`, so `docker compose up -d --build` runs the bot with
+  its Postgres and Redis. CI builds the image on every PR.
 - Invite codes: `/invite` (config admins, in their command menu) replies with one
   line and Copy and Share buttons for a single-use link (works 7 days). A friend who opens
   it joins (`invited_by` recorded, language from Telegram) and gets the language picker,
