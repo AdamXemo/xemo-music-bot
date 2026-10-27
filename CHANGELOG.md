@@ -7,6 +7,9 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Delivery timings: `LOG_TIMINGS=blocks|stages` shows where the seconds of a delivery go,
+  as a live tree with a spinner per running step in a terminal, or plain `▶`/`✓` log
+  lines elsewhere; off by default. rich added (ADR 0007).
 - Delivery: tapping a track sends it as an audio message with performer, title, duration
   and cover; the tapped button turns into a disabled loading button and the chat shows
   "sending a file" until the audio arrives. Too long tracks get an alert, a second tap

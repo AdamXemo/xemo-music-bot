@@ -9,6 +9,7 @@ from aiogram.exceptions import TelegramAPIError
 from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.utils.chat_action import ChatActionSender
 
+from xemo_music_bot import timing
 from xemo_music_bot.bot import emoji
 from xemo_music_bot.bot.handlers.edits import edit_tapped_message, expire_results
 from xemo_music_bot.bot.keyboards.results import TrackCallback, results_keyboard
@@ -62,18 +63,21 @@ async def handle_track(
         await callback.answer(alert, show_alert=True)
         return
 
-    try:
-        # Inside the try: an answer Telegram rejects (the query is too old) must still
-        # release the claim.
-        await callback.answer()
-        await _show_buttons(callback, db_user, texts, search_service, session_id)
-        async with ChatActionSender.upload_document(
-            chat_id=db_user.tg_id, bot=bot, interval=_ACTION_INTERVAL
-        ):
-            await _deliver(track, bot, db_user.tg_id, texts, delivery_service)
-    finally:
-        await search_service.finish_loading(session_id, index)
-        await _show_buttons(callback, db_user, texts, search_service, session_id)
+    with timing.timed_task(f"deliver {track_name(track)}"):
+        try:
+            # Inside the try: an answer Telegram rejects (the query is too old) must still
+            # release the claim.
+            with timing.stage("buttons", detail="block"):
+                await callback.answer()
+                await _show_buttons(callback, db_user, texts, search_service, session_id)
+            async with ChatActionSender.upload_document(
+                chat_id=db_user.tg_id, bot=bot, interval=_ACTION_INTERVAL
+            ):
+                await _deliver(track, bot, db_user.tg_id, texts, delivery_service)
+        finally:
+            with timing.stage("buttons back", detail="block"):
+                await search_service.finish_loading(session_id, index)
+                await _show_buttons(callback, db_user, texts, search_service, session_id)
 
 
 async def _deliver(
@@ -82,14 +86,15 @@ async def _deliver(
     """Send the audio, or the message that says why it could not be."""
 
     async def send(audio: DownloadedAudio) -> None:
-        await bot.send_audio(
-            chat_id,
-            FSInputFile(audio.path),
-            performer=track.artist or None,
-            title=track.title,
-            duration=audio.duration,
-            thumbnail=FSInputFile(audio.thumbnail),
-        )
+        with timing.stage("upload", detail="block"):
+            await bot.send_audio(
+                chat_id,
+                FSInputFile(audio.path),
+                performer=track.artist or None,
+                title=track.title,
+                duration=audio.duration,
+                thumbnail=FSInputFile(audio.thumbnail),
+            )
 
     name = html.escape(track_name(track), quote=False)
     try:

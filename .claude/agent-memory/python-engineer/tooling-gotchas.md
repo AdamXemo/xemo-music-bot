@@ -33,6 +33,8 @@ metadata:
   i18n 1/2a came to ~415 vs a 310 estimate (signature change touched ~20 test call sites).
   i18n 1/2b came to ~580 vs a 300 brief (prod ~270, tests ~290): a handler + keyboard PR
   with DB-backed dispatcher tests is ~2x its production lines; say so up front.
+  Delivery timings (2026-10-26): ~760 vs a 400 brief (new module 280 incl. docstrings,
+  wiring 150, tests 280, docs 45); a new module plus wiring rarely fits 400.
 - RUF001 also flags the Ukrainian conjunction "і" and the all-look-alike Russian "его";
   same fix as "у" (line noqa + ASCII why-comment). A locales per-file ignore is a follow-up.
 - Mutation-test "uses the new language": since UPDATE..RETURNING refreshes `db_user` in the

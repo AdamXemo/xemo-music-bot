@@ -11,6 +11,7 @@ from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+TimingMode = Literal["off", "blocks", "stages"]
 
 
 class Settings(BaseSettings):
@@ -20,6 +21,7 @@ class Settings(BaseSettings):
         bot_token: Telegram bot token from BotFather.
         admin_ids: Telegram user IDs with admin rights (invites, bans).
         log_level: Minimum level for log records.
+        log_timings: Developer timings of each delivery: ``off``, ``blocks`` or ``stages``.
         database_url: SQLAlchemy URL of the Postgres database (asyncpg driver).
         redis_url: URL of the Redis cache.
     """
@@ -35,6 +37,7 @@ class Settings(BaseSettings):
     bot_token: SecretStr
     admin_ids: frozenset[int] = frozenset()
     log_level: LogLevel = "INFO"
+    log_timings: TimingMode = "off"
     # The default matches the `db` service in docker-compose.yml, so local development
     # needs no extra setup. The URL is secret because it carries the password.
     database_url: SecretStr = SecretStr(

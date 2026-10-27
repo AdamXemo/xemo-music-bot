@@ -18,6 +18,7 @@ def test_defaults_apply_when_only_token_is_set(monkeypatch: pytest.MonkeyPatch) 
 
     assert settings.admin_ids == frozenset()
     assert settings.log_level == "INFO"
+    assert settings.log_timings == "off"
 
 
 def test_admin_ids_are_parsed_from_json_list(monkeypatch: pytest.MonkeyPatch) -> None:
