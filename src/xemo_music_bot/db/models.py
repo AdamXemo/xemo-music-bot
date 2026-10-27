@@ -69,6 +69,36 @@ class User(Base):
     language_chosen: Mapped[bool] = mapped_column(server_default=false())
 
 
+class Invite(Base):
+    """A single-use invite code; the row is kept after it is used or expires.
+
+    No ``relationship()``, for the same reason as on :class:`User`.
+    """
+
+    __tablename__ = "invites"
+    __table_args__ = (
+        # Literal SQL, like the migration; core.services.invites generates the same shape.
+        CheckConstraint("code ~ '^[A-Za-z0-9]{8}$'", name="code_format"),
+        CheckConstraint("expires_at > created_at", name="expires_after_created"),
+        CheckConstraint("used_by IS NULL OR used_at IS NOT NULL", name="used_by_needs_used_at"),
+    )
+
+    # Case-sensitive natural key: the code is the deep-link payload itself.
+    code: Mapped[str] = mapped_column(Text, primary_key=True)
+    # Any user, not only a config admin, so members could invite later without a migration.
+    created_by: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.tg_id", ondelete="CASCADE")
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # No server default: the repository sets it from the database clock plus the TTL.
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # NULL until the code is used up.
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    used_by: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("users.tg_id", ondelete="SET NULL")
+    )
+
+
 class CachedTrack(Base):
     """A track Telegram already holds, so it can be sent again by ``tg_file_id``.
 
