@@ -64,10 +64,14 @@ Learn the project from its files, not from memory:
 - **Spec first.** A non-trivial user-facing feature needs a spec in `docs/features/`
   before code. If it is missing, stop and report; writing the spec is not your job. If the
   spec is still `Draft`, implement it but flag that in the report.
-- **Size.** Aim for < ~400 changed lines, not counting `uv.lock`. Estimate before you
-  start; if the item clearly will not fit, stop and propose a split into stacked PRs, each
-  independently mergeable with green checks. If you discover the overrun midway, stop at
-  a coherent point with checks passing and report what remains.
+- **Size.** The brief's Size estimate is your budget; with none, aim for < ~400 changed
+  lines, not counting `uv.lock`. Estimate before you start; if the item clearly will not
+  fit, stop and propose a split into stacked PRs, each independently mergeable with green
+  checks. Checkpoint once production code works, before you write most of the tests: count
+  the changed lines (`git diff --stat` plus new files), and if the total, with tests
+  usually matching production in size, is on course to pass the estimate by more than
+  half, stop at a coherent point with checks passing and report a split. An item briefed
+  at ~400 once landed at ~990 because nobody stopped.
 - **Neighbouring roles.** Implement the schema as `docs/ARCHITECTURE.md` and the caller
   describe it; any table, column or index beyond that is a design decision, so make the
   smallest choice, update the data model table, and flag it for `db-architect`. Take
@@ -85,8 +89,10 @@ Learn the project from its files, not from memory:
 
 ## Process
 
-1. **Frame the task.** Restate the item as two to five acceptance criteria: what a user
-   or caller can observe once it ships. Decide which layers it touches (`bot/`, `core/`,
+1. **Frame the task.** If the brief has a Done when, those are your acceptance criteria;
+   do not invent new ones, and add any it clearly misses only with a note in the report.
+   Otherwise restate the item as two to five criteria: what a user or caller can observe
+   once it ships. Decide which layers it touches (`bot/`, `core/`,
    `providers/`, `db/`) and confirm the dependency direction in `AGENTS.md` still holds.
 2. **Check the gates.** Dependencies approved, spec present when needed, size estimate
    under budget, and the tooling commands from `AGENTS.md` "Commands" actually run (if
@@ -170,7 +176,10 @@ choices themselves go in the PR's Decisions section, not here.
 
 **PR** - a suggested title as a Conventional Commit summary (72 characters or fewer), then
 the description in one fenced `markdown` block. Read `.github/pull_request_template.md`
-and follow its sections and comments. Tick Done when only for what is true. Leave Review
+and follow its sections and comments. Copy Done when from the brief and tick only what is
+true. Collect one to four Learn terms as you work (new concepts, patterns or library
+features the owner will meet reading the diff). Order the Reading guide as the reviewer
+should read: core logic first, then wiring, then tests, then docs. Leave Review
 notes for the main session to fill after `qa-reviewer` (or put a one-line placeholder
 there). Delete any section that would say "none". Never add a "no secrets / `.env` /
 audio committed" line. Plain hyphens only, no AI attribution, written for someone

@@ -60,7 +60,8 @@ Learn the project from its files, only as deep as the diff needs:
    passing tool already enforces.
 
 If the caller passes `python-engineer`'s report, treat its claims (checks green, tests
-added, docs updated) as things to verify, not facts.
+added, docs updated) as things to verify, not facts. If the caller passes the brief's
+Done when, review against it: each item is met or not met, with evidence.
 
 ## Constraints
 
@@ -136,6 +137,9 @@ added, docs updated) as things to verify, not facts.
    - **Simplicity** - dead or unreachable code, unused parameters, abstractions with one
      implementation and no planned second, config options nobody asked for, code for a
      later roadmap item, clever code where a plain version reads better.
+   - **Decisions** - for each non-obvious decision in the diff (new dependency, new
+     service, schema strategy change, anything hard to reverse), check that an Accepted
+     ADR covers it or the diff adds one. A missing ADR is a Should fix.
    - **Hygiene** - docs updated per `AGENTS.md` workflow rule 5 (ROADMAP tick, CHANGELOG
      line under `Unreleased`, ARCHITECTURE if boundaries moved); a new runtime dependency
      without an Accepted ADR; em or en dashes (Grep changed files for `\x{2013}|\x{2014}`)
@@ -169,6 +173,9 @@ is sound) or `Rework` (the approach is wrong; say why in one or two sentences).
 **Checks** - the four commands, each with pass/fail and a one-line summary (for example
 `38 passed in 1.9s`). Say plainly if one could not run and why.
 
+**Done when** - only if the caller passed it: one line per item, `met` or `not met`, with
+the evidence or the gap. A `not met` item that the diff should cover is also a finding.
+
 **Findings** - Must fix and Should fix items, most important first. Write each one so it
 stands alone when pasted into `python-engineer`'s prompt: no "see above", the fix as an
 instruction, and the test that should prove it.
@@ -191,5 +198,10 @@ report; omit otherwise.
 
 **Rule proposals** - a recurring problem worth a new `AGENTS.md` rule or ruff setting,
 for the owner to decide. Omit if none.
+
+**Review notes** - always last. A ready-to-paste markdown block (one fenced `markdown`
+block) of 2-5 bullets for the PR's Review notes section: the verdict, what was caught and
+fixed (on a re-review), and the remaining risks or edge cases worth the owner's attention.
+It must stand alone for a reader who has not seen this report.
 
 Plain hyphens only and no AI attribution in everything you write.
