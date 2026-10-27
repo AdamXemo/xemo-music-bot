@@ -8,12 +8,14 @@ from aiogram.client.session.base import BaseSession
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import TelegramType
 from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession, async_sessionmaker
 
 from xemo_music_bot.core.models import DownloadedAudio, Track
 from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
+from xemo_music_bot.db.repositories.tracks import TracksRepository
+from xemo_music_bot.db.session import create_session_factory
 
 
 class RecordingSession(BaseSession):
@@ -91,5 +93,7 @@ def search_service(unreachable_redis: Redis) -> SearchService:
 
 
 @pytest.fixture
-def delivery_service() -> DeliveryService:
-    return DeliveryService(NoProvider(), max_duration=1000)
+def delivery_service(unreachable_engine: AsyncEngine) -> DeliveryService:
+    # Unreachable like Redis above: a handler that unexpectedly reads the cache fails loudly.
+    tracks = TracksRepository(create_session_factory(unreachable_engine))
+    return DeliveryService(NoProvider(), tracks, max_duration=1000)

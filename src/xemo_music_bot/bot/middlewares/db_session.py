@@ -11,9 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 class DbSessionMiddleware(BaseMiddleware):
     """Put a session into ``data["session"]`` and own its transaction.
 
-    Repositories never commit; this middleware commits once after the handler
-    returns, so each update is one transaction. The session connects lazily, so
-    updates that never query cost no connection.
+    Repositories never commit (except ``TracksRepository``, see its docstring); this
+    middleware commits once after the handler returns, so each update is one
+    transaction. The session connects lazily, so updates that never query cost no
+    connection.
     """
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:

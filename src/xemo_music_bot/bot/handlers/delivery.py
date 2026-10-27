@@ -1,11 +1,11 @@
-"""A tap on a track: download it, send it as audio, and show progress on its button."""
+"""A tap on a track: send it by ``file_id`` if cached, else download it, showing progress."""
 
 import html
 import logging
 from typing import Final
 
 from aiogram import Bot, Router
-from aiogram.exceptions import TelegramAPIError
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
 from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.utils.chat_action import ChatActionSender
 
@@ -16,7 +16,7 @@ from xemo_music_bot.bot.keyboards.results import TrackCallback, results_keyboard
 from xemo_music_bot.bot.labels import format_duration, track_name
 from xemo_music_bot.bot.locales import Texts
 from xemo_music_bot.core.models import DownloadedAudio, Track
-from xemo_music_bot.core.services.delivery import DeliveryService
+from xemo_music_bot.core.services.delivery import DeliveryService, StaleFileIdError
 from xemo_music_bot.core.services.search import SearchService, SearchSessionExpiredError
 from xemo_music_bot.db.models import User
 from xemo_music_bot.providers.base import PreviewOnlyError, ProviderError, TooLargeError
@@ -37,6 +37,10 @@ async def handle_track(
     delivery_service: DeliveryService,
 ) -> None:
     """Send the tapped track as an audio message, with its button showing the progress.
+
+    A track sent before goes out at once by its stored ``file_id``, keyboard untouched;
+    if Telegram rejects that id, the track is downloaded as if it was never sent. Any other
+    Telegram error on that send gets ``download_failed`` and keeps the id.
 
     Args:
         callback: The tap on a track button.
@@ -63,21 +67,57 @@ async def handle_track(
         await callback.answer(alert, show_alert=True)
         return
 
+    redraw = False  # Only a download changes the keyboard, so only then is it restored.
     with timing.timed_task(f"deliver {track_name(track)}"):
         try:
             # Inside the try: an answer Telegram rejects (the query is too old) must still
             # release the claim.
+            await callback.answer()
+            with timing.stage("cache", detail="block"):
+                if await _send_cached(track, bot, db_user.tg_id, texts, delivery_service):
+                    return  # Sent, or told why not; the keyboard is untouched (spec, Delivery).
+            redraw = True
             with timing.stage("buttons", detail="block"):
-                await callback.answer()
                 await _show_buttons(callback, db_user, texts, search_service, session_id)
             async with ChatActionSender.upload_document(
                 chat_id=db_user.tg_id, bot=bot, interval=_ACTION_INTERVAL
             ):
                 await _deliver(track, bot, db_user.tg_id, texts, delivery_service)
         finally:
-            with timing.stage("buttons back", detail="block"):
-                await search_service.finish_loading(session_id, index)
-                await _show_buttons(callback, db_user, texts, search_service, session_id)
+            await search_service.finish_loading(session_id, index)
+            if redraw:
+                with timing.stage("buttons back", detail="block"):
+                    await _show_buttons(callback, db_user, texts, search_service, session_id)
+
+
+async def _send_cached(
+    track: Track, bot: Bot, chat_id: int, texts: Texts, delivery_service: DeliveryService
+) -> bool:
+    """Send the track by its stored ``file_id``; return whether the tap needs no download.
+
+    ``True`` also when Telegram failed on the send: the user is told, and the ``file_id``
+    is kept, since a network error or flood limit says nothing about it.
+    """
+
+    async def send_by_id(file_id: str) -> None:
+        try:
+            # Telegram keeps the cover, performer, title and duration of the first upload.
+            await bot.send_audio(chat_id, file_id)
+        except TelegramBadRequest as error:
+            raise StaleFileIdError from error
+
+    try:
+        return await delivery_service.send_cached(track, send_by_id)
+    except TelegramAPIError:
+        logger.warning("Cached delivery of %s failed", track.page_url, exc_info=True)
+        await _send_download_failed(bot, chat_id, texts, track)
+        return True
+
+
+async def _send_download_failed(bot: Bot, chat_id: int, texts: Texts, track: Track) -> None:
+    """Tell the user the track could not be sent."""
+    text = texts.download_failed.format(track=html.escape(track_name(track), quote=False))
+    await bot.send_message(chat_id, emoji.with_emoji(emoji.ERROR, text))
 
 
 async def _deliver(
@@ -85,9 +125,9 @@ async def _deliver(
 ) -> None:
     """Send the audio, or the message that says why it could not be."""
 
-    async def send(audio: DownloadedAudio) -> None:
+    async def send(audio: DownloadedAudio) -> str | None:
         with timing.stage("upload", detail="block"):
-            await bot.send_audio(
+            message = await bot.send_audio(
                 chat_id,
                 FSInputFile(audio.path),
                 performer=track.artist or None,
@@ -95,6 +135,7 @@ async def _deliver(
                 duration=audio.duration,
                 thumbnail=FSInputFile(audio.thumbnail),
             )
+        return None if message.audio is None else message.audio.file_id
 
     name = html.escape(track_name(track), quote=False)
     try:
@@ -107,8 +148,7 @@ async def _deliver(
     except (ProviderError, TelegramAPIError):
         # Telegram refusing the upload is told to the user like any failed download.
         logger.warning("Delivery of %s failed", track.page_url, exc_info=True)
-        text = texts.download_failed.format(track=name)
-        await bot.send_message(chat_id, emoji.with_emoji(emoji.ERROR, text))
+        await _send_download_failed(bot, chat_id, texts, track)
 
 
 async def _show_buttons(

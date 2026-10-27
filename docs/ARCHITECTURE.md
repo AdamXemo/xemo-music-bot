@@ -65,6 +65,7 @@ src/xemo_music_bot/
     ├── redis.py         # Redis client factory, startup connection check
     └── repositories/    # one per aggregate: users, invites, tracks, search sessions
         ├── users.py     # UsersRepository
+        ├── tracks.py    # TracksRepository (file_id cache, commits per call)
         └── search_sessions.py  # SearchSessionsRepository (Redis)
 migrations/              # Alembic
 scripts/                 # one-off developer scripts, not part of the bot
@@ -92,20 +93,25 @@ tests/                   # mirrors src/ layout
 ### Delivery (tap a track)
 0. The handler claims the track with `SearchService.start_loading` (a loading mark in
    Redis; a second tap gets `already_loading`), answers `too_long` as an alert if
-   `DeliveryService.is_too_long`, then redraws the keyboard from the stored state so the
-   track's button is a disabled loading button, and runs the `upload_document` chat
-   action. `DeliveryService.deliver(track, send)` takes a `send` callback, so `core`
-   stays free of aiogram; the handler's callback calls `sendAudio`. A `finally` always
-   releases the mark and redraws the keyboard (skipped silently if the message is gone).
-   Failures become a new message: `too_large`, `track_unavailable` (Go+) or
-   `download_failed` (any other provider or Telegram error).
-   Steps 1-2 and 4 below come with the `file_id` cache item; until then every tap
-   downloads.
-1. `DeliveryService.get_audio(track_ref)` checks `tracks.tg_file_id`.
-2. **Hit** → send by `file_id` instantly (no download, no upload).
-3. **Miss** → `async with provider.download(track) as audio` (download semaphore, then
+   `DeliveryService.is_too_long`, else answers the callback without text. Services take
+   `send` callbacks, so `core` stays free of aiogram and a `file_id` is an opaque string
+   there; the handler's callbacks call `sendAudio`. A `finally` always releases the mark.
+1. `DeliveryService.send_cached(track, send)` looks up `tracks.tg_file_id`.
+2. **Hit** → send by `file_id` only (no download, no upload, no loading button, no chat
+   action; the keyboard is never touched). If Telegram rejects the id (`TelegramBadRequest`,
+   mapped to `StaleFileIdError`), the row is deleted only if it still holds that id, and
+   the tap goes on as a miss. Any other Telegram error on that send (network, flood
+   limit) keeps the row and sends `download_failed`, with no download.
+3. **Miss** → the keyboard is redrawn from the stored state so the track's button is a
+   disabled loading button, the `upload_document` chat action runs, and
+   `DeliveryService.deliver(track, send)` does
+   `async with provider.download(track) as audio` (download semaphore, then
    yt-dlp into a temp dir in a thread, converted to MP3; the dir is removed when the block
-   exits, however it exits) → `sendAudio` with metadata + cover → store returned `file_id`.
+   exits, however it exits) → `sendAudio` with metadata + cover → store the returned
+   `file_id` (only after a successful send; a failed save is logged, the user already has
+   the audio). The `finally` also redraws the keyboard (skipped silently if the message is
+   gone). Failures become a new message: `too_large`, `track_unavailable` (Go+) or
+   `download_failed` (any other provider or Telegram error).
    The provider refuses over-long tracks before downloading (`TooLongError`), files over
    50 MB (`TooLargeError`) and Go+ previews or DRM-locked tracks (`PreviewOnlyError`).
    yt-dlp saves the cover (the artwork, else the uploader's avatar) into the same temp
@@ -150,7 +156,13 @@ handler, denying by default:
 |-----------|---------------------------------|-------------|
 | `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`, text NOT NULL, server default `en`, CHECK `ck_users_language_valid`; set from Telegram's `language_code` when the row is created, changed via the picker or `/language`); `language_chosen` (boolean NOT NULL, server default false; set true by any language pick; while false, `/start` shows the language picker) |
 | `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
-| `tracks`  | Track metadata + Telegram cache | `provider`, `provider_track_id` (unique pair), `title`, `artist`, `duration`, `tg_file_id` |
+| `tracks`  | Track metadata + Telegram cache | `id` BIGINT identity PK; `provider`, `provider_track_id` (text, unique pair `uq_tracks_provider_provider_track_id`); `title` (cleaned, CHECK `ck_tracks_title_not_empty`), `artist` (cleaned, may be empty), `duration` (int seconds, CHECK `ck_tracks_duration_non_negative`), `tg_file_id` (opaque text), `created_at`. Saves upsert on the pair (last writer wins) |
+
+`TracksRepository` is the one repository that commits: each call is its own short
+transaction, because the update's transaction stays open for a whole download (a
+`file_id` saved in it would be lost by a later rollback, and a delete in it would hold a
+row lock during the fallback download). A `file_id` only works for the bot that received
+it, so each bot token (development, production) has its own database.
 
 Redis (cache only; persistence off, every key has a TTL, losing a key shows `results_expired`):
 

@@ -35,6 +35,8 @@ metadata:
   with DB-backed dispatcher tests is ~2x its production lines; say so up front.
   Delivery timings (2026-10-26): ~760 vs a 400 brief (new module 280 incl. docstrings,
   wiring 150, tests 280, docs 45); a new module plus wiring rarely fits 400.
+  file_id cache (2026-10-27): ~680 vs a 400 brief (code 260, tests 375, docs 47); a
+  repo + service + handler item needs tests at three layers, so project tests at 1.5x code.
 - RUF001 also flags the Ukrainian conjunction "і" and the all-look-alike Russian "его";
   same fix as "у" (line noqa + ASCII why-comment). A locales per-file ignore is a follow-up.
 - Mutation-test "uses the new language": since UPDATE..RETURNING refreshes `db_user` in the

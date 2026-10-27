@@ -75,7 +75,7 @@ and Russian. Keep everything else as simple as it can be.
 - [x] Delivery timings (`LOG_TIMINGS`)
 - [ ] Rich cards spike: throwaway script sends a rich-message track list to the owner's
       and friends' devices; decides whether cards replace track buttons later
-- [ ] `file_id` cache: `tracks` table; repeat requests are instant, no re-download
+- [x] `file_id` cache: `tracks` table; repeat requests are instant, no re-download
 - [ ] De-duplicate in-flight downloads of the same track
 - [ ] Error UX: friendly messages for not found / too long / source failure
 - [ ] Draft the hosting ADR (VPS vs home server) so Phase 2 starts right at `v0.1.0`

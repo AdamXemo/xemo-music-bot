@@ -41,6 +41,9 @@ Verified on aiogram 3.31.0 (Bot API 10.3), 2026-10-10:
   catch-all callback lives in `handlers/fallback.py`, included last (review ask 2026-10-15:
   every callback must be answered, unrecognised ones too).
 - `str.split()` on whitespace-only text (e.g. chr(160)) returns `[]`; guard before `[0]`.
+- `RecordingSession.make_request` returns None for every method; a handler that reads the
+  reply (e.g. `message.audio.file_id` after sendAudio) needs an autouse fixture that wraps
+  `make_request` and returns a real `Message(..., audio=Audio(...))` (see test_delivery.py).
 - Handler tests: `dispatcher.feed_update(bot, Update(...))` with a `BaseSession` subclass
   that records `make_request` calls (see `tests/bot/handlers/test_start.py`). Ruff flags the
   inherited `timeout` params (ASYNC109) and the dummy token (S106); those need commented noqa.
