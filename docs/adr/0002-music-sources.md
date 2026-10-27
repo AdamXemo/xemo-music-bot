@@ -28,7 +28,7 @@ unofficial APIs. A licensed, public version of this project is not realistically
 - Keep the bot **private and non-commercial** (see ADR 0003).
 - Official SoundCloud OAuth stays in the ideas backlog.
 - Search is **by track name only**. SoundCloud links are not a search input; they are
-  used only to link a user's public profile (Phase 3).
+  used only to link a user's public profile (SoundCloud profiles phase).
 
 ## Alternatives considered
 
@@ -42,4 +42,4 @@ unofficial APIs. A licensed, public version of this project is not realistically
 - README carries a clear disclaimer: personal, non-commercial learning project.
 - YouTube may need residential hosting or cookies to work reliably.
 - Full YouTube support in yt-dlp needs an external JS runtime (Deno) plus `yt-dlp-ejs`
-  in the image; add it with the YouTube provider (Phase 4), not earlier.
+  in the image; add it with the YouTube provider, not earlier.

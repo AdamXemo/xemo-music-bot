@@ -93,23 +93,45 @@ Goal: the bot runs 24/7 and updates itself on merge.
 - [ ] Postgres backups, structured logs, basic error alerting (e.g. to admin chat)
 - [ ] Scheduled workflow: SoundCloud search + download smoke test against a known track
 
-## Phase 3 - SoundCloud profiles 💤 → `v0.3.0`
+## Phase 3 - Friends' requests 💤 → `v0.3.0`
+
+Goal: the features the friend group asked for after the first real test (October 2026).
+Each user-facing item gets a `ux-designer` spec first; each new external source gets an ADR.
+
+- [ ] Original covers: look up the official release cover by artist, title and duration
+      (candidates: Deezer API, iTunes Search API, MusicBrainz + Cover Art Archive; all free
+      and keyless) and use it only on a confident match, else today's chain (SoundCloud
+      artwork, uploader avatar, default cover). SoundCloud artwork is often a custom
+      uploader image, not the release cover
+- [ ] Lyrics: look up a delivered track's lyrics (candidate source: LRCLIB, free and
+      keyless, plain and synced lyrics matched by artist, title and duration), cached in
+      Redis. The spec decides the entry point: a button under the audio reverses the MVP's
+      "no buttons on audio" decision, the alternatives are a command or a reply
+- [ ] Albums: search albums as well as tracks, open an album to see its tracks, tap one or
+      send all. Builds the bulk sending (progress message, rate limiting) that "send whole
+      playlist" reuses; needs the `file_id` cache. A spike first checks what yt-dlp and
+      SoundCloud offer for album search
+- [ ] Chords spike: no chords site offers an API (Ultimate Guitar and Chordify forbid
+      scraping), so compare chord recognition from the audio itself with a link out to a
+      chords search; decide in an ADR. Tabs come after chords
+
+## Phase 4 - SoundCloud profiles 💤 → `v0.4.0`
 
 Goal: browse your own public SoundCloud library inside the bot.
 
 - [ ] `/profile` - link a public SoundCloud profile by username or URL
 - [ ] Browse likes (paginated) and playlists → tap to receive tracks
-- [ ] "Send whole playlist" with progress message and rate limiting
+- [ ] "Send whole playlist", reusing the bulk sending built for albums (Phase 3)
 - [ ] Cache profile listings in Redis with short TTL
 
-## Phase 4 - Quality of life 💤 → `v0.4.0`
+## Phase 5 - Quality of life 💤 → `v0.5.0`
 
 - [ ] Inline mode: `@xemo_music_bot query` in any chat
 - [ ] YouTube provider behind a feature flag
 - [ ] In-bot favourites and recent history
 - [ ] Settings screen (absorbs `/language`): per-user settings (default source, audio quality)
 
-## Phase 5 - Mini App 💤 → `v1.0.0`
+## Phase 6 - Mini App 💤 → `v1.0.0`
 
 Goal: a Spotify-like player opened from inside Telegram.
 
@@ -124,5 +146,5 @@ Goal: a Spotify-like player opened from inside Telegram.
   can find it
 - Shared friend playlists / "what friends are listening to"
 - Official SoundCloud OAuth (requires Artist Pro - see ADR 0002)
-- Lyrics, Last.fm scrobbling, recommendations
+- Last.fm scrobbling, recommendations
 - Quality-of-service dashboard (download latency, cache hit rate)
