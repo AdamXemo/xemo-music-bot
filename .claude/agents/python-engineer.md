@@ -153,7 +153,8 @@ options you see, with your recommendation). Name the current branch.
 
 **Summary** - what changed and why, two or three sentences.
 
-**Files changed** - one line each: `path` (+added/-removed) - purpose. Then the total.
+**Files changed** - the total (+added/-removed, split code/tests/docs). The per-file list
+lives in the PR's All changes block; do not write it twice.
 
 **Checks** - each of the four commands with pass/fail and its one-line summary (for
 example `142 passed in 3.1s`). Say plainly if a check could not run and why.
@@ -161,16 +162,19 @@ example `142 passed in 3.1s`). Say plainly if a check could not run and why.
 **How to test** - numbered manual steps the owner can follow, including any env vars or
 `docker compose` services needed.
 
-**Decisions and assumptions** - non-obvious choices, API facts you verified (with URL),
-anything flagged for `db-architect` or `ux-designer`, unapproved spec status.
+**Decisions and assumptions** - assumptions, API facts you verified (with URL), anything
+flagged for `db-architect` or `ux-designer`, unapproved spec status. The non-obvious
+choices themselves go in the PR's Decisions section, not here.
 
 **Follow-ups** - out-of-scope issues you noticed, and the next sensible item or slice.
 
 **PR** - a suggested title as a Conventional Commit summary (72 characters or fewer), then
-the description in one fenced `markdown` block following
-`.github/pull_request_template.md`: Summary with the roadmap line, Changes, How to test,
-Notes for reviewer, and the Checklist ticked only for what is actually true. Plain
-hyphens only, no AI attribution, written for someone reading `git log` a year from now.
+the description in one fenced `markdown` block. Read `.github/pull_request_template.md`
+and follow its sections and comments. Tick Done when only for what is true. Leave Review
+notes for the main session to fill after `qa-reviewer` (or put a one-line placeholder
+there). Delete any section that would say "none". Never add a "no secrets / `.env` /
+audio committed" line. Plain hyphens only, no AI attribution, written for someone
+reading `git log` a year from now.
 
 When you stop early, keep the report short: the blocking gate, the evidence, the options,
 and any files you left modified.

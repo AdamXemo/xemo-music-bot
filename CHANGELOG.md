@@ -85,6 +85,9 @@ Versioning: [SemVer](https://semver.org/).
   logged. Menu entries for `/help`, `/invite`, `/revoke` and `/ban` come with their own items.
 
 ### Changed
+- PR template: roadmap and size line, Why, What changes, a reading guide in review order,
+  Decisions, Review notes, collapsed Learn and All changes blocks, and a Done when list;
+  the secrets and local-checks lines are gone. `python-engineer` drafts PRs to match.
 - `plan-reviewer` subagent: settled decisions sourced from Accepted ADRs only, severity labels (must fix / should fix / consider), evidence-based stale-doc and plan-vs-code drift checks, and rules for verifying external facts.
 - Roadmap reworked after plan review: branch protection after CI, Redis before search UX,
   DB layer and delivery split into reviewable PRs, revocation, Dependabot and smoke tests.
