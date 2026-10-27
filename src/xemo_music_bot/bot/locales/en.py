@@ -1,9 +1,18 @@
 """English copy, the canonical source for the other languages."""
 
 from xemo_music_bot.bot.locales.catalog import Texts
+from xemo_music_bot.bot.locales.plural import Plural
 
 EN = Texts(
     private_bot="This bot is private. To join, ask @Xemo999 for an invite",
+    invite_invalid="This invite doesn't work anymore. Ask for a new one",
+    invite_created="Invite link:\n{link}\nFor one person, works for {days}",
+    invite_days=Plural(one="{count} day", few="{count} days", many="{count} days"),
+    invite_copy="⧉ Copy",
+    invite_share="↗ Share",
+    invite_share_text="An invite to our music bot",
+    invite_friend="{name} (@{username})",
+    invite_joined="{friend} joined with your invite",
     welcome="Send me a track name and I'll find it",
     language_flag="🇬🇧",
     language_name="English",
@@ -29,6 +38,7 @@ EN = Texts(
     results_expired="These results have expired. Send the name again",
     cmd_start="Start the bot",
     cmd_language="Change language",
+    cmd_invite="Create an invite",
     bot_short_description="Private music bot for a circle of friends. Invite only",
     bot_description=(
         "Send a track name, pick it from the list and get the audio right in the chat"

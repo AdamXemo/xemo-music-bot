@@ -7,11 +7,21 @@ from typing import Final
 
 from xemo_music_bot.bot.locales.catalog import Texts
 from xemo_music_bot.bot.locales.en import EN
+from xemo_music_bot.bot.locales.plural import Plural, plural
 from xemo_music_bot.bot.locales.ru import RU
 from xemo_music_bot.bot.locales.uk import UK
 from xemo_music_bot.core.models import DEFAULT_LANGUAGE, Language
 
-__all__ = ["DEFAULT_LANGUAGE", "LANGUAGES", "Language", "Texts", "detect_language", "get_texts"]
+__all__ = [
+    "DEFAULT_LANGUAGE",
+    "LANGUAGES",
+    "Language",
+    "Plural",
+    "Texts",
+    "detect_language",
+    "get_texts",
+    "plural",
+]
 
 _CATALOGS: Final[dict[Language, Texts]] = {"en": EN, "uk": UK, "ru": RU}
 

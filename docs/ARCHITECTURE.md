@@ -38,18 +38,21 @@ src/xemo_music_bot/
 │   ├── commands.py      # command menu and bot descriptions: startup hook, per-user chat menu
 │   ├── emoji.py         # custom emoji slots (UX guide); empty until the owner picks ids
 │   ├── labels.py        # result_label(): track button text within the 32-character budget
-│   ├── handlers/        # one router per feature: start, language, search, library, admin; fallback last
+│   ├── invite_notice.py # notify_inviter(): the inviter's notice when a friend joins
+│   ├── handlers/        # one router per feature: start, language, invite, search, library, admin; fallback last
 │   ├── keyboards/       # inline keyboard builders + CallbackData factories
-│   │   └── language.py  # language picker (first run and `/language`)
+│   │   ├── language.py  # language picker (first run and `/language`)
+│   │   └── invite.py    # Copy and Share under an invite link
 │   ├── middlewares/     # access control, DB session, throttling
 │   │   ├── db_session.py  # DbSessionMiddleware: one session per update, commit after handler
-│   │   └── access.py      # AccessMiddleware: private chats only, members and config admins pass
-│   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005)
+│   │   └── access.py      # AccessMiddleware: private chats only, members and config admins pass; joins with a code
+│   └── locales/         # Texts dataclass + en.py, uk.py, ru.py: every user-facing string (ADR 0005); plural.py
 ├── core/
 │   ├── models.py        # domain dataclasses: Track, Playlist, Profile, and the `Language` literal
 │   ├── metadata.py      # clean performer and title from raw provider metadata
 │   └── services/        # search, delivery, access, library
 │       ├── access.py    # AccessService: admin / member / blocked / stranger
+│       ├── invites.py   # InviteService: create codes, join with one
 │       ├── search.py    # SearchService: search, pages, loading marks over search sessions
 │       └── language.py  # LanguageService: change and read users' languages
 ├── assets/
@@ -65,6 +68,7 @@ src/xemo_music_bot/
     ├── redis.py         # Redis client factory, startup connection check
     └── repositories/    # one per aggregate: users, invites, tracks, search sessions
         ├── users.py     # UsersRepository
+        ├── invites.py   # InvitesRepository
         ├── tracks.py    # TracksRepository (file_id cache, commits per call)
         └── search_sessions.py  # SearchSessionsRepository (Redis)
 migrations/              # Alembic
@@ -122,20 +126,30 @@ tests/                   # mirrors src/ layout
 
 ### Access
 `DbSessionMiddleware` (outer, on update) opens one session per update and commits
-after the handler; `AccessMiddleware` (outer, on update) runs after it and before every
-handler, denying by default:
+after the handler (a join with an invite is the one update with two transactions, see
+3); `AccessMiddleware` (outer, on update) runs after it and before every handler,
+denying by default:
 1. No sender, or a chat that is not private (groups, supergroups, channels): the update
    is dropped before any query, for admins and members too. The bot works in private
    chats only.
 2. `AccessService.check()` reads the `users` row. Config admins (`ADMIN_IDS`, the only
    source of admin rights) are admins even with role `blocked` (they cannot be banned),
    and their row is created on their first update.
-3. Strangers (no row) and `blocked` users get the "private bot" line in reply to `/start`
-   (with or without a payload) and nothing for anything else.
-4. Members and admins reach the handlers with `db_user` (their `User` row), `is_admin`
-   and `texts` (the catalog for `db_user.language`).
-
-`/start <invite_code>` will be the only way in for friends (Invite codes item).
+3. A stranger's `/start <code>` is the only way in for friends (spec:
+   [invite-codes.md](features/invite-codes.md)). `InviteService.join` rejects a malformed
+   code before any query, then in the update's transaction locks the code's row
+   (`SELECT ... FOR UPDATE`, unused and unexpired), creates the `users` row with
+   `invited_by` and marks the code used. Two people racing for one code: the second waits
+   on the lock and then finds the code used. On a join the middleware commits at once,
+   sends the inviter the notice (a failed send is only logged), re-checks access and goes
+   on to the `/start` handler; the rest of the update is a second transaction that
+   `DbSessionMiddleware` commits. A code that does not work gets `invite_invalid`.
+4. Other strangers and `blocked` users (whatever the code) get the "private bot" line in
+   reply to `/start` and nothing for anything else.
+5. Members and admins reach the handlers with `db_user` (their `User` row), `is_admin`
+   and `texts` (the catalog for `db_user.language`). Opening an invite link is a normal
+   `/start` for them, and the code is not used. `/invite` (`handlers/invite.py`) passes
+   only for config admins; a member's falls through to `unknown_command`.
 
 ### Language
 1. While `users.language_chosen` is false, `/start` sends the language picker in the
@@ -155,7 +169,7 @@ handler, denying by default:
 | Table     | Purpose                         | Key columns |
 |-----------|---------------------------------|-------------|
 | `users`   | Telegram users who joined       | `tg_id` BIGINT PK, `username`, `role` (`user` / `blocked`, text + CHECK `ck_users_role_valid`; admin rights come only from config `ADMIN_IDS`), `invited_by` -> `users.tg_id` (ON DELETE SET NULL), `created_at`; `language` (`en` / `uk` / `ru`, text NOT NULL, server default `en`, CHECK `ck_users_language_valid`; set from Telegram's `language_code` when the row is created, changed via the picker or `/language`); `language_chosen` (boolean NOT NULL, server default false; set true by any language pick; while false, `/start` shows the language picker) |
-| `invites` | One-time / limited invite codes | `code` PK, `created_by`, `max_uses`, `uses`, `expires_at`, `revoked_at` |
+| `invites` | Single-use invite codes, valid 7 days | `code` text PK (8 chars A-Z a-z 0-9, case-sensitive, CHECK `ck_invites_code_format`); `created_by` -> `users.tg_id` NOT NULL (ON DELETE CASCADE; any user, not only admins); `created_at`; `expires_at` (timestamptz NOT NULL, `now()` + 7 days on insert, CHECK `ck_invites_expires_after_created`); `used_at`, `used_by` -> `users.tg_id` (NULL until used; ON DELETE SET NULL; CHECK `ck_invites_used_by_needs_used_at`). Joining locks the row, inserts the user and marks it used in one transaction, committed before the inviter notice. Rows are kept after use or expiry |
 | `tracks`  | Track metadata + Telegram cache | `id` BIGINT identity PK; `provider`, `provider_track_id` (text, unique pair `uq_tracks_provider_provider_track_id`); `title` (cleaned, CHECK `ck_tracks_title_not_empty`), `artist` (cleaned, may be empty), `duration` (int seconds, CHECK `ck_tracks_duration_non_negative`), `tg_file_id` (opaque text), `created_at`. Saves upsert on the pair (last writer wins) |
 
 `TracksRepository` is the one repository that commits: each call is its own short

@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from xemo_music_bot.bot.locales.plural import Plural
+
 
 @dataclass(slots=True, frozen=True)
 class Texts:
@@ -9,9 +11,21 @@ class Texts:
 
     Every field is required, so mypy rejects a catalog that misses a key. Message fields
     are HTML (escape ``&``, ``<`` and ``>``); button-label fields are plain text.
+    :class:`Plural` fields are read through ``plural()``.
 
     Attributes:
         private_bot: Reply to `/start` from a stranger or a blocked user.
+        invite_invalid: Reply to a stranger's `/start` with a code that does not work.
+        invite_created: Reply to `/invite`; ``{link}`` is the link without ``https://``
+            and ``{days}`` is ``invite_days`` filled in.
+        invite_days: How long an invite works, in days.
+        invite_copy: Label of the button that copies the invite link.
+        invite_share: Label of the button that shares the invite link.
+        invite_share_text: Line Telegram puts after the link when it is shared.
+        invite_friend: A friend with a username in ``invite_joined``; ``{name}`` is
+            HTML-escaped, ``{username}`` has no "@".
+        invite_joined: Notice to the inviting user; ``{friend}`` is ``invite_friend``,
+            or just the escaped name for a friend without a username.
         welcome: Reply to `/start` from a member or an admin who has picked a language.
         language_flag: The language's flag, before its name on picker buttons; the only
             Unicode emoji allowed in the copy (UX guide, "Language flags").
@@ -39,11 +53,20 @@ class Texts:
         results_expired: Toast on a tap on results that are gone from the cache.
         cmd_start: Description of `/start` in the command menu.
         cmd_language: Description of `/language` in the command menu.
+        cmd_invite: Description of `/invite` in the admins' command menu.
         bot_short_description: Short description on the bot's profile (Telegram limit 120).
         bot_description: Description shown in an empty chat with the bot (Telegram limit 512).
     """
 
     private_bot: str
+    invite_invalid: str
+    invite_created: str
+    invite_days: Plural
+    invite_copy: str
+    invite_share: str
+    invite_share_text: str
+    invite_friend: str
+    invite_joined: str
     welcome: str
     language_flag: str
     language_name: str
@@ -68,5 +91,6 @@ class Texts:
     results_expired: str
     cmd_start: str
     cmd_language: str
+    cmd_invite: str
     bot_short_description: str
     bot_description: str

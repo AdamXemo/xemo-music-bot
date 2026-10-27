@@ -35,6 +35,7 @@ async def handle_pick_language(
     callback: CallbackQuery,
     callback_data: PickLanguageCallback,
     db_user: User,
+    is_admin: bool,
     session: AsyncSession,
     bot: Bot,
 ) -> None:
@@ -46,6 +47,7 @@ async def handle_pick_language(
         callback: The tap on a language button.
         callback_data: The parsed button data.
         db_user: The sender's row, injected by ``AccessMiddleware``.
+        is_admin: Whether the sender is a config admin, injected by ``AccessMiddleware``.
         session: The update's session, injected by ``DbSessionMiddleware``.
         bot: The bot, injected by aiogram.
     """
@@ -62,7 +64,7 @@ async def handle_pick_language(
     else:
         await edit_tapped_message(callback, texts.language_set)
     # After the edit, so a failed edit (which rolls the pick back) leaves the menu alone.
-    await set_user_commands(bot, user.tg_id, user.language)
+    await set_user_commands(bot, user.tg_id, user.language, is_admin=is_admin)
 
 
 def build_router() -> Router:
