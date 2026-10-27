@@ -53,9 +53,10 @@ Only the PR title + description end up on `main`, so make those good.
 
 - One logical change per PR, ideally < ~400 changed lines.
 - PR title = the Conventional Commit summary (it becomes the squash commit).
-- Description follows [the PR template](.github/pull_request_template.md):
-  **Summary** (what + why), **Changes** (bullet list), **How to test**,
-  **Notes for reviewer** (anything non-obvious, trade-offs, follow-ups), **Checklist**.
+- Description follows [the PR template](.github/pull_request_template.md): a roadmap
+  and size line, **Why**, **What changes**, **Reading guide** (files in review order),
+  **Decisions**, **How to test**, **Review notes**, collapsed **Learn** and **All changes**
+  blocks, and **Done when**. Keep it to about one screen above the collapsed blocks.
 - Write the description for someone reading `git log` a year from now.
 - Merge strategy: **squash and merge** → `main` history is one clean commit per PR.
 - Branches are deleted automatically after merge.
