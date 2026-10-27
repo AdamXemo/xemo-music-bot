@@ -5,3 +5,4 @@
 - [yt-dlp quirks](yt-dlp-quirks.md) - 2026.8.19 flat scsearch entry shape, Go+ previews, writethumbnail/process=False, Pillow notes
 - [rich quirks](rich-quirks.md) - rich 15 Live lock order, stale frame after print, test consoles, run_in_executor contextvars
 - [Disabled button, chat action](aiogram-disabled-button-chat-action.md) - DisabledButton exists in 3.31, ChatActionSender in tests, catch-all router order
+- [Docker quirks](docker-quirks.md) - uv_build needs README+LICENSE, editable venv needs src, image size, safe alembic check
