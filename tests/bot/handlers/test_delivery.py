@@ -20,7 +20,7 @@ from aiogram.methods import (
     SendMessage,
     TelegramMethod,
 )
-from aiogram.types import CallbackQuery, Chat, InlineKeyboardMarkup, Message, Update, User
+from aiogram.types import Audio, CallbackQuery, Chat, InlineKeyboardMarkup, Message, Update, User
 from redis.asyncio import Redis
 from rich.console import Console
 from sqlalchemy import insert
@@ -36,6 +36,7 @@ from xemo_music_bot.core.services.delivery import DeliveryService
 from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.models import User as DbUser
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
+from xemo_music_bot.db.repositories.tracks import TracksRepository
 from xemo_music_bot.providers.base import (
     PreviewOnlyError,
     ProviderError,
@@ -45,6 +46,8 @@ from xemo_music_bot.providers.base import (
 MEMBER_ID = 2
 MESSAGE_ID = 7
 MAX_DURATION = 1000
+# What Telegram returns for every uploaded audio in these tests.
+FILE_ID = "uploaded-file-id"
 TRACKS = [
     Track("soundcloud", str(n), f"Song {n}", "Artist", 200 + n, None, f"https://sc/{n}")
     for n in range(7)
@@ -90,8 +93,29 @@ def search_service(provider: FakeProvider, redis: Redis) -> SearchService:
 
 
 @pytest.fixture
-def delivery_service(provider: FakeProvider) -> DeliveryService:
-    return DeliveryService(provider, MAX_DURATION)
+def tracks(session_factory: async_sessionmaker[AsyncSession]) -> TracksRepository:
+    return TracksRepository(session_factory)
+
+
+@pytest.fixture
+def delivery_service(provider: FakeProvider, tracks: TracksRepository) -> DeliveryService:
+    return DeliveryService(provider, tracks, MAX_DURATION)
+
+
+@pytest.fixture(autouse=True)
+def telegram_returns_audio(monkeypatch: pytest.MonkeyPatch, api_session: BaseSession) -> None:
+    """Answer every sendAudio with a message holding FILE_ID, as Telegram would."""
+    make_request = api_session.make_request
+
+    async def reply(bot: Bot, call: TelegramMethod[Any], **kwargs: Any) -> Any:
+        result = await make_request(bot, call, **kwargs)  # recorded like any other call
+        if not isinstance(call, SendAudio):
+            return result
+        audio = Audio(file_id=FILE_ID, file_unique_id="unique", duration=181)
+        chat = Chat(id=MEMBER_ID, type="private")
+        return Message(message_id=8, date=datetime.now(UTC), chat=chat, audio=audio)
+
+    monkeypatch.setattr(api_session, "make_request", reply)
 
 
 @pytest.fixture
@@ -157,13 +181,14 @@ def fail_requests(
     api_session: BaseSession,
     method: type[TelegramMethod[Any]],
     error: Callable[[TelegramMethod[Any]], Exception],
+    match: Callable[[Any], bool] = lambda call: True,
 ) -> None:
-    """Make Telegram reject every call of one method, as the real API would."""
+    """Make Telegram reject every call of one method (that ``match`` picks), as it would."""
     make_request = api_session.make_request
 
     async def failing(bot: Bot, call: TelegramMethod[Any], **kwargs: Any) -> Any:
         result = await make_request(bot, call, **kwargs)  # recorded like any other call
-        if isinstance(call, method):
+        if isinstance(call, method) and match(call):
             raise error(call)
         return result
 
@@ -176,10 +201,12 @@ async def test_tap_sends_the_audio_while_the_button_shows_loading_then_restores(
     dispatcher: Dispatcher,
     provider: FakeProvider,
     search_service: SearchService,
+    tracks: TracksRepository,
     session_id: str,
 ) -> None:
     await dispatcher.feed_update(bot, tap_track(session_id, 1))
 
+    assert await tracks.get_file_id(TRACKS[1]) == FILE_ID
     # No other messages: the audio has no caption and no buttons, and errors say nothing.
     answer, loading, audio, restored = without_chat_actions(sent_requests)
     assert isinstance(answer, AnswerCallbackQuery)
@@ -218,10 +245,112 @@ async def test_tap_logs_its_blocks_when_timings_are_on(
     # The fake provider times nothing itself, so only the handler's blocks show.
     assert [m for m in caplog.messages if m.startswith("▶")] == [
         "▶ deliver Artist - Song 1",
+        "▶ deliver Artist - Song 1: cache",
         "▶ deliver Artist - Song 1: buttons",
         "▶ deliver Artist - Song 1: upload",
         "▶ deliver Artist - Song 1: buttons back",
     ]
+
+
+async def test_tap_on_a_cached_track_sends_it_by_file_id_without_downloading(
+    bot: Bot,
+    sent_requests: list[TelegramMethod[Any]],
+    dispatcher: Dispatcher,
+    provider: FakeProvider,
+    search_service: SearchService,
+    tracks: TracksRepository,
+    session_id: str,
+) -> None:
+    await tracks.save(TRACKS[1], "cached-file-id")
+
+    await dispatcher.feed_update(bot, tap_track(session_id, 1))
+
+    # No loading button, no chat action, no restore: the keyboard is never touched.
+    answer, audio = sent_requests
+    assert isinstance(answer, AnswerCallbackQuery)
+    assert answer.text is None
+    assert isinstance(audio, SendAudio)
+    assert (audio.chat_id, audio.audio) == (MEMBER_ID, "cached-file-id")
+    assert provider.downloaded == []
+    assert await search_service.start_loading(MEMBER_ID, session_id, 1) is not None
+
+
+async def test_cached_tap_shows_one_short_block_when_timings_are_on(
+    bot: Bot,
+    dispatcher: Dispatcher,
+    tracks: TracksRepository,
+    session_id: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    await tracks.save(TRACKS[1], "cached-file-id")
+    caplog.set_level(logging.INFO, logger="xemo_music_bot.timing")
+    timing.configure("stages", Console(file=StringIO(), force_terminal=False))
+    try:
+        await dispatcher.feed_update(bot, tap_track(session_id, 1))
+    finally:
+        timing.configure("off")
+
+    assert [m for m in caplog.messages if m.startswith("▶")] == [
+        "▶ deliver Artist - Song 1",
+        "▶ deliver Artist - Song 1: cache",
+    ]
+
+
+async def test_a_cached_send_that_telegram_fails_on_tells_the_user_and_keeps_the_file_id(
+    bot: Bot,
+    monkeypatch: pytest.MonkeyPatch,
+    api_session: BaseSession,
+    sent_requests: list[TelegramMethod[Any]],
+    dispatcher: Dispatcher,
+    provider: FakeProvider,
+    search_service: SearchService,
+    tracks: TracksRepository,
+    session_id: str,
+) -> None:
+    await tracks.save(TRACKS[1], "cached-file-id")
+    fail_requests(
+        monkeypatch, api_session, SendAudio, lambda call: TelegramNetworkError(call, "timeout")
+    )
+
+    await dispatcher.feed_update(bot, tap_track(session_id, 1))
+
+    [message] = [r for r in sent_requests if isinstance(r, SendMessage)]
+    assert message.text == RU.download_failed.format(track="Artist - Song 1")
+    assert not any(isinstance(r, EditMessageReplyMarkup) for r in sent_requests)
+    assert provider.downloaded == []
+    assert await tracks.get_file_id(TRACKS[1]) == "cached-file-id"
+    assert await search_service.start_loading(MEMBER_ID, session_id, 1) is not None
+
+
+async def test_a_file_id_telegram_rejects_falls_back_to_a_download_and_is_replaced(
+    bot: Bot,
+    monkeypatch: pytest.MonkeyPatch,
+    api_session: BaseSession,
+    sent_requests: list[TelegramMethod[Any]],
+    dispatcher: Dispatcher,
+    provider: FakeProvider,
+    tracks: TracksRepository,
+    session_id: str,
+) -> None:
+    await tracks.save(TRACKS[1], "stale-file-id")
+    fail_requests(
+        monkeypatch,
+        api_session,
+        SendAudio,
+        lambda call: TelegramBadRequest(call, "Bad Request: wrong file identifier"),
+        match=lambda call: call.audio == "stale-file-id",
+    )
+
+    await dispatcher.feed_update(bot, tap_track(session_id, 1))
+
+    _, stale, loading, upload, restored = without_chat_actions(sent_requests)
+    assert isinstance(stale, SendAudio)
+    assert buttons(loading)[1].text == RU.track_loading
+    assert isinstance(upload, SendAudio)
+    assert getattr(upload.audio, "path", None) == provider.audio.path
+    assert_shows_no_loading(restored)
+    assert provider.downloaded == [TRACKS[1]]
+    assert await tracks.get_file_id(TRACKS[1]) == FILE_ID
 
 
 async def test_tap_on_a_loading_track_shows_a_toast_and_downloads_nothing(

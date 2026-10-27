@@ -7,8 +7,10 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Identity,
     MetaData,
     Text,
+    UniqueConstraint,
     false,
     func,
 )
@@ -65,3 +67,31 @@ class User(Base):
     language: Mapped[Language] = mapped_column(Text, server_default="en")
     # False until the user picks a language; until then `language` is a default or a guess.
     language_chosen: Mapped[bool] = mapped_column(server_default=false())
+
+
+class CachedTrack(Base):
+    """A track Telegram already holds, so it can be sent again by ``tg_file_id``.
+
+    One database per bot token (why: ARCHITECTURE, Data model).
+    """
+
+    __tablename__ = "tracks"
+    __table_args__ = (
+        # Named by hand: the naming convention would call it `uq_tracks_provider`.
+        UniqueConstraint(
+            "provider", "provider_track_id", name="uq_tracks_provider_provider_track_id"
+        ),
+        CheckConstraint("title <> ''", name="title_not_empty"),
+        CheckConstraint("duration >= 0", name="duration_non_negative"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    provider: Mapped[str] = mapped_column(Text)
+    provider_track_id: Mapped[str] = mapped_column(Text)
+    # Cleaned like the results list (core.metadata); artist may be empty, title may not.
+    title: Mapped[str] = mapped_column(Text)
+    artist: Mapped[str] = mapped_column(Text)
+    duration: Mapped[int]
+    # Opaque to everything but the Telegram layer.
+    tg_file_id: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

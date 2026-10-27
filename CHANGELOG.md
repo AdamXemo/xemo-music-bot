@@ -7,6 +7,9 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `file_id` cache: a track sent once is sent again instantly by its Telegram `file_id`
+  (no download, no loading button), for every user; a `file_id` Telegram rejects is
+  dropped and the track downloads as before. New `tracks` table (migration 0005).
 - Delivery timings: `LOG_TIMINGS=blocks|stages` shows where the seconds of a delivery go,
   as a live tree with a spinner per running step in a terminal, or plain `▶`/`✓` log
   lines elsewhere; off by default. rich added (ADR 0007).
@@ -14,8 +17,7 @@ Versioning: [SemVer](https://semver.org/).
   and cover; the tapped button turns into a disabled loading button and the chat shows
   "sending a file" until the audio arrives. Too long tracks get an alert, a second tap
   gets a toast, and files over the limit, Go+ previews and failed downloads get a message
-  while the button comes back. Every track is downloaded again on each tap until the
-  `file_id` cache lands.
+  while the button comes back.
 - Delivery (covers): every downloaded track comes with a Telegram-ready thumbnail made
   from its SoundCloud artwork or the uploader's avatar (square JPEG, at most 320 px,
   under 200 kB), or a bundled placeholder default cover when there is none or it is

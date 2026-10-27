@@ -20,6 +20,7 @@ from xemo_music_bot.core.services.search import SearchService
 from xemo_music_bot.db.redis import check_connection as check_redis_connection
 from xemo_music_bot.db.redis import create_redis
 from xemo_music_bot.db.repositories.search_sessions import SearchSessionsRepository
+from xemo_music_bot.db.repositories.tracks import TracksRepository
 from xemo_music_bot.db.session import check_connection, create_db_engine, create_session_factory
 from xemo_music_bot.logging_setup import setup_logging
 from xemo_music_bot.providers.soundcloud import MAX_DURATION, SoundCloudProvider
@@ -99,7 +100,7 @@ def _run(settings: Settings) -> None:
     redis = create_redis(settings.redis_url.get_secret_value())
     provider = SoundCloudProvider()
     search_service = SearchService(provider, SearchSessionsRepository(redis))
-    delivery_service = DeliveryService(provider, MAX_DURATION)
+    delivery_service = DeliveryService(provider, TracksRepository(session_factory), MAX_DURATION)
     dispatcher = build_dispatcher(
         session_factory, settings.admin_ids, search_service, delivery_service
     )
