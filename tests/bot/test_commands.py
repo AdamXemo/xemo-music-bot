@@ -55,6 +55,13 @@ def test_menu_lists_only_commands_that_exist_in_the_texts_language() -> None:
     ]
 
 
+def test_admin_menu_adds_invite() -> None:
+    assert build_commands(UK, is_admin=True) == [
+        *build_commands(UK),
+        BotCommand(command="invite", description="Створити запрошення"),
+    ]
+
+
 async def test_startup_publishes_menu_and_descriptions_per_language_and_a_default(
     bot: Bot,
     sent_requests: list[TelegramMethod[Any]],
@@ -108,8 +115,8 @@ async def test_startup_sets_each_admins_chat_menu_in_their_stored_language(
     await publish_commands(session_factory, frozenset({ADMIN_ID, OTHER_ADMIN_ID}), bot)
 
     assert chat_menus(sent_requests) == [
-        (ADMIN_ID, build_commands(UK)),
-        (OTHER_ADMIN_ID, build_commands(RU)),
+        (ADMIN_ID, build_commands(UK, is_admin=True)),
+        (OTHER_ADMIN_ID, build_commands(RU, is_admin=True)),
     ]
 
 
@@ -123,7 +130,7 @@ async def test_startup_skips_an_admin_without_a_row(
 
     await publish_commands(session_factory, frozenset({ADMIN_ID, OTHER_ADMIN_ID}), bot)
 
-    assert chat_menus(sent_requests) == [(ADMIN_ID, build_commands(UK))]
+    assert chat_menus(sent_requests) == [(ADMIN_ID, build_commands(UK, is_admin=True))]
 
 
 async def test_startup_logs_a_telegram_error_and_still_sets_the_other_admins(
@@ -172,7 +179,7 @@ async def test_startup_logs_a_failure_of_the_global_texts_and_goes_on(
         await publish_commands(session_factory, frozenset({ADMIN_ID}), bot)
 
     assert "description is too long" in caplog.text
-    assert chat_menus(sent_requests) == [(ADMIN_ID, build_commands(UK))]
+    assert chat_menus(sent_requests) == [(ADMIN_ID, build_commands(UK, is_admin=True))]
 
 
 @pytest.mark.parametrize(

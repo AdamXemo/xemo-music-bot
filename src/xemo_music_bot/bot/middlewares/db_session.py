@@ -13,8 +13,10 @@ class DbSessionMiddleware(BaseMiddleware):
 
     Repositories never commit (except ``TracksRepository``, see its docstring); this
     middleware commits once after the handler returns, so each update is one
-    transaction. The session connects lazily, so updates that never query cost no
-    connection.
+    transaction. The one exception is a stranger joining with an invite:
+    ``AccessMiddleware`` commits the join before notifying the inviter, and the rest of
+    that update is a second transaction committed here. The session connects lazily, so
+    updates that never query cost no connection.
     """
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:

@@ -58,7 +58,7 @@ and Russian. Keep everything else as simple as it can be.
 > Order note (2026-10-15): search comes first. The Invite codes and Revocation items below
 > stay where they are but are done after Delivery; until then the owner tests as an admin.
 
-- [ ] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
+- [x] Invite codes: `invites` table + migration (`code` as PK); `/invite` (admin) generates
       a code and is added to the admin menu; `/start <code>` creates the user with
       `language` from Telegram and shows the language picker, then the welcome; short spec
       for admin replies first

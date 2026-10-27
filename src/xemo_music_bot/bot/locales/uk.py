@@ -4,6 +4,13 @@ from xemo_music_bot.bot.locales.catalog import Texts
 
 UK = Texts(
     private_bot="Це приватний бот. Щоб приєднатися, попросіть запрошення в @Xemo999",
+    invite_invalid="Це запрошення вже не діє. Попросіть нове",
+    invite_created="<b>Одноразове запрошення готове</b>",
+    invite_copy="Скопіювати",
+    invite_share="Поділитися",
+    invite_share_text="Запрошення до нашого бота",
+    invite_friend="{name} (@{username})",
+    invite_joined="Ваше запрошення прийнято: {friend}",
     # RUF001 mistakes the one-letter Ukrainian conjunction for a Latin "i"; it is real copy.
     welcome="Надішліть назву треку, і я його знайду",  # noqa: RUF001
     language_flag="🇺🇦",
@@ -17,7 +24,6 @@ UK = Texts(
     pager_counter="{page} / {pages}",
     track_loading="Завантаження…",
     no_results=(
-        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
         "За запитом «{query}» нічого не знайдено. "  # noqa: RUF001
         "Спробуйте коротший запит або інше написання"  # noqa: RUF001
     ),
@@ -29,7 +35,6 @@ UK = Texts(
     too_long="Цей трек задовгий для Telegram ({duration}). Спробуйте коротшу версію",
     too_large="Трек «{track}» завеликий для Telegram. Спробуйте коротшу версію",
     download_failed=(
-        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
         "Не вдалося завантажити «{track}». "  # noqa: RUF001
         "Натисніть на нього ще раз або виберіть інший"  # noqa: RUF001
     ),
@@ -38,6 +43,7 @@ UK = Texts(
     results_expired="Ці результати застаріли. Надішліть назву ще раз",
     cmd_start="Запустити бота",
     cmd_language="Змінити мову",
+    cmd_invite="Створити запрошення",
     bot_short_description="Приватний музичний бот для кола друзів. Лише за запрошенням",
     bot_description=(
         "Надішліть назву треку, виберіть його зі списку й отримайте аудіо просто в чаті"

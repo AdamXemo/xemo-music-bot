@@ -40,6 +40,12 @@ Verified on aiogram 3.31.0 (Bot API 10.3), 2026-10-10:
   catch-all registered on the dispatcher would shadow every feature router; the repo's
   catch-all callback lives in `handlers/fallback.py`, included last (review ask 2026-10-15:
   every callback must be answered, unrecognised ones too).
+- (2026-10-27) `CallableObject.call` runs a non-async callback via `asyncio.to_thread`, filters
+  too. For a filter on middleware data use the built-in `MagicData(F.is_admin)` (async,
+  gets all handler data as kwargs; review ask 2026-10-27), not a hand-written filter.
+  `Bot.me()` caches getMe on the Bot (`_me`); a test fake must return a `User` for GetMe.
+  `CommandStart()` defaults to `deep_link=None`, so it matches `/start <payload>` as well.
+  `data["bot"]` is set in update outer middlewares (Dispatcher.feed_update).
 - `str.split()` on whitespace-only text (e.g. chr(160)) returns `[]`; guard before `[0]`.
 - `RecordingSession.make_request` returns None for every method; a handler that reads the
   reply (e.g. `message.audio.file_id` after sendAudio) needs an autouse fixture that wraps

@@ -5,6 +5,13 @@ from xemo_music_bot.bot.locales.catalog import Texts
 RU = Texts(
     # RUF001 mistakes the one-letter Russian preposition for a Latin "y"; it is real copy.
     private_bot="Это закрытый бот. Чтобы присоединиться, попросите приглашение у @Xemo999",  # noqa: RUF001
+    invite_invalid="Это приглашение больше не действует. Попросите новое",
+    invite_created="<b>Одноразовое приглашение готово</b>",
+    invite_copy="Копировать",
+    invite_share="Поделиться",
+    invite_share_text="Приглашение в наш бот",
+    invite_friend="{name} (@{username})",
+    invite_joined="Ваше приглашение принято: {friend}",
     # RUF001 reads the all-look-alike pronoun as Latin letters; it is real copy.
     welcome="Пришлите название трека, и я его найду",  # noqa: RUF001
     language_flag="🇷🇺",
@@ -28,7 +35,6 @@ RU = Texts(
     too_long="Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче",
     too_large="Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче",
     download_failed=(
-        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
         "Не получилось загрузить «{track}». "  # noqa: RUF001
         "Нажмите на него ещё раз или выберите другой"
     ),
@@ -37,6 +43,7 @@ RU = Texts(
     results_expired="Эти результаты устарели. Пришлите название ещё раз",
     cmd_start="Запустить бота",
     cmd_language="Сменить язык",
+    cmd_invite="Создать приглашение",
     bot_short_description="Закрытый музыкальный бот для своих. Только по приглашению",
     bot_description=(
         # RUF001 reads the all-look-alike pronoun as Latin letters; it is real copy.

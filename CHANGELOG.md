@@ -7,6 +7,12 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Invite codes: `/invite` (config admins, in their command menu) replies with one
+  line and Copy and Share buttons for a single-use link (works 7 days). A friend who opens
+  it joins (`invited_by` recorded, language from Telegram) and gets the language picker,
+  and the inviting admin gets a one-line notice. Used, expired, unknown or malformed codes
+  get `invite_invalid`. New `invites` table (migration 0006) and the ADR 0005 `plural()`
+  helper.
 - `file_id` cache: a track sent once is sent again instantly by its Telegram `file_id`
   (no download, no loading button), for every user; a `file_id` Telegram rejects is
   dropped and the track downloads as before. New `tracks` table (migration 0005).

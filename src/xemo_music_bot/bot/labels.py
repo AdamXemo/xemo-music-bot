@@ -1,4 +1,4 @@
-"""Track names for buttons and messages (feature spec: "Track label" and "Copy").
+"""Track and people names for buttons and messages (feature spec: "Track label" and "Copy").
 
 The label is ``Title - Artist · m:ss`` and has a fixed budget, so Telegram never cuts a
 button on its own and the duration always shows. Titles and artists arrive cleaned
@@ -67,6 +67,14 @@ def track_name(track: Track) -> str:
     if len(name) <= MAX_NAME_LENGTH:
         return name
     return name[: MAX_NAME_LENGTH - 1].rstrip() + _ELLIPSIS
+
+
+def shorten(text: str, width: int) -> str:
+    """Cut ``text`` to at most ``width`` characters (emoji count as 2) with an ellipsis.
+
+    Emoji are never split. Plain text: the caller escapes it for HTML.
+    """
+    return _text(_cut(_units(text), width))
 
 
 def format_duration(seconds: int) -> str:

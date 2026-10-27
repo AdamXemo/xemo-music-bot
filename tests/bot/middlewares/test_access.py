@@ -83,7 +83,8 @@ def make_update(
     return Update(update_id=1, message=message)
 
 
-@pytest.mark.parametrize("text", ["/start", "/start some-code", "/start@xemo_bot"])
+# A stranger's `/start` with a payload is an invite attempt: see test_invite.py.
+@pytest.mark.parametrize("text", ["/start", "/start@xemo_bot"])
 @pytest.mark.parametrize(("language_code", "expected"), [("en", EN), ("uk", UK), ("ru", RU)])
 async def test_stranger_start_gets_private_bot_line(
     bot: Bot,

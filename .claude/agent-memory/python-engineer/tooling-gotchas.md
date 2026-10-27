@@ -37,6 +37,16 @@ metadata:
   wiring 150, tests 280, docs 45); a new module plus wiring rarely fits 400.
   file_id cache (2026-10-27): ~680 vs a 400 brief (code 260, tests 375, docs 47); a
   repo + service + handler item needs tests at three layers, so project tests at 1.5x code.
+  Invite codes (2026-10-27): brief 550 (code 240); production alone came to ~660 (new
+  migration 62, repo 70, service 128, handler 108, locales/catalog ~70, middleware 80) before
+  any new test. Final: ~1,490 (code 657, tests 784, docs 47) vs a re-set 1,250 gate, which
+  I crossed unnoticed while writing tests. Dispatcher-level handler tests alone were 370
+  lines. **How to apply:** re-count after EACH new test file, not only at the end.
+- Review asks (2026-10-27, invite codes): drop result fields production never reads; put
+  helpers a middleware imports in a bot/ module, not a router module; shrink language x
+  state matrices to EN for all states plus one case per other language.
+- `unicodedata.category("↗")` (U+2197) is `So`, so test_copy_contains_no_unicode_emoji
+  catches it; `⧉` (U+29C9) is `Sm`. Only the plain horizontal/vertical arrows are `Sm`.
 - RUF001 also flags the Ukrainian conjunction "і" and the all-look-alike Russian "его";
   same fix as "у" (line noqa + ASCII why-comment). A locales per-file ignore is a follow-up.
 - Mutation-test "uses the new language": since UPDATE..RETURNING refreshes `db_user` in the

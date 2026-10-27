@@ -407,7 +407,8 @@ third-party client a friend uses:
 
 ## Out of scope
 
-- Admin replies for `/invite`, `/revoke`, `/ban` (short spec with the invite PR).
+- Admin replies for `/invite`: see [invite-codes.md](invite-codes.md). `/revoke` and
+  `/ban` come with the Revocation item.
 - Rich message cards (see the spike above), inline mode, favourites, history, YouTube.
 - A Settings screen that absorbs `/language` (later roadmap item).
 - Reactions: in private chats they would be regular emoji, which the guide forbids.
