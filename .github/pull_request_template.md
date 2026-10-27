@@ -21,4 +21,3 @@ Roadmap: Phase N - <item> · Closes #
 - [ ] `ruff format`, `ruff check`, `mypy`, `pytest` pass locally
 - [ ] Docs updated (ROADMAP checkbox, ARCHITECTURE / ADR if needed)
 - [ ] `CHANGELOG.md` entry under `Unreleased`
-- [ ] No secrets, `.env`, cookies or audio files committed
