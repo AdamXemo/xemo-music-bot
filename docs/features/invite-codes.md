@@ -23,12 +23,14 @@ side and the rules for using a code up. Revoking and banning are out of scope.
 
 ```
 ┌──────────────────────────────────────────────┐
-│ Invite link:                                 │
-│ t.me/xemo_music_bot?start=Kx7pQ2mZ           │
-│ For one person, works for 7 days             │
-│ [ ⧉ Copy ]              [ ↗ Share ]          │
+│ One-time invite ready                        │
+│ [ Copy ]                      [ Share ]      │
 └──────────────────────────────────────────────┘
 ```
+
+The line is bold. It shows no link and no validity text. The link is only on the buttons.
+The labels are plain: the Telegram client draws its own corner icon on each button, so
+they carry no symbol prefix and no custom emoji icon (a second icon would double up).
 
 - **Copy** copies `https://t.me/xemo_music_bot?start=Kx7pQ2mZ`. The Telegram app shows
   its own "copied" notice, and the bot gets no callback.
@@ -85,13 +87,13 @@ no keyboard. Nothing is created.
 | Several friends | Send `/invite` again; each call makes a fresh code | Owner, 2026-10-27 |
 | Arguments after `/invite` | Ignored; the reply is the normal one, with no error | Owner, 2026-10-27 (the calmer option) |
 | Expiry | 7 days from creation | Owner, 2026-10-27 |
-| Admin reply | Link, one validity line, and `[ ⧉ Copy ] [ ↗ Share ]` in one row | Owner, 2026-10-27 (picked preview) |
+| Admin reply | One line, "One-time invite ready", and `[ Copy ] [ Share ]` in one row; no link in the text | Owner, 2026-10-28 |
 | Join notice | Only the inviting admin gets one line with the friend's name and @username | Owner, 2026-10-27 |
 | Friend's onboarding | Unchanged: picker, then welcome; no "invited by" line | Owner, 2026-10-27 (recommended default) |
 | Member or admin opens an invite | Normal `/start`; the code is not used, and no notice is sent | Owner, 2026-10-27 (recommended default) |
 | Share text | One short line after the link | Owner, 2026-10-27 (recommended default) |
 | Code format | 8 random characters `A-Z a-z 0-9`, case-sensitive | Owner-approved default, 2026-10-27 |
-| Validity wording | Relative ("for 7 days"), never a calendar date | Owner-approved default, 2026-10-27 |
+| Validity wording | Not shown; the 7-day expiry stays, a friend with an expired link asks for a new one | Owner, 2026-10-28 |
 | When a code is used up | Only when a new `users` row is created | Owner-approved default, 2026-10-27 |
 | Blocked user with a valid code | Stays blocked, gets `private_bot`, the code is not used | Owner-approved default, 2026-10-27 |
 | Same code opened by two people at once | Checked when the second person joins: the first one in wins, the other gets `invite_invalid` | Owner-approved default, 2026-10-27 |
@@ -104,17 +106,14 @@ no keyboard. Nothing is created.
 
 ## Copy
 
-`{link}` is the link shown in the message, without `https://`. `{days}` is
-`invite_days` with the 7-day expiry. `{friend}` is `invite_friend` (or just `{name}` when
-there is no username). `{name}` is HTML-escaped. This is the first plural string, so it
-needs the `plural()` helper from ADR 0005.
+`{friend}` is `invite_friend` (or just `{name}` when there is no username). `{name}` is
+HTML-escaped.
 
 | key | EN | UK | RU | notes |
 |-----|----|----|----|-------|
-| invite_created | Invite link:`\n`{link}`\n`For one person, works for {days} | Посилання-запрошення:`\n`{link}`\n`Діє {days} для однієї людини | Ссылка-приглашение:`\n`{link}`\n`Действует {days} для одного человека | message; owner preview said "works 7 days", polished to "works for"; UK and RU: proofread |
-| invite_days | one: {count} day · other: {count} days | one: {count} день · few: {count} дні · many: {count} днів | one: {count} день · few: {count} дня · many: {count} дней | plural; filled into `{days}` |
-| invite_copy | ⧉ Copy | ⧉ Скопіювати | ⧉ Копировать | button, `copy_text`; max 12 chars |
-| invite_share | ↗ Share | ↗ Поділитися | ↗ Поделиться | button, URL; max 12 chars; see open question on `↗` |
+| invite_created | `<b>`One-time invite ready`</b>` | `<b>`Одноразове запрошення готове`</b>` | `<b>`Одноразовое приглашение готово`</b>` | message, no format args; owner, 2026-10-28; UK and RU: proofread |
+| invite_copy | Copy | Скопіювати | Копировать | button, `copy_text`; max 12 chars; no prefix symbol, the client draws its own icon |
+| invite_share | Share | Поділитися | Поделиться | button, URL; max 12 chars; no prefix symbol, as for Copy |
 | invite_share_text | An invite to our music bot | Запрошення до нашого бота | Приглашение в наш бот | sent by the admin, after the link; UK and RU: plain "бот", owner, 2026-10-27 |
 | invite_friend | {name} (@{username}) | {name} (@{username}) | {name} (@{username}) | same in all three |
 | invite_joined | {friend} joined with your invite | Ваше запрошення прийнято: {friend} | Ваше приглашение принято: {friend} | message to the inviting admin; UK and RU avoid the gendered past tense ("приєдналася"), so they don't mirror EN; proofread |
@@ -142,8 +141,7 @@ needs the `plural()` helper from ADR 0005.
   The friend's join is not affected.
 - **Long or emoji-heavy names:** cut to 40 characters with `…`. Emoji count as 2
   characters and are kept. Newlines become spaces.
-- **Copy button on a client without `copy_text` support:** the link in the message text
-  can still be selected and copied by hand.
+- **Copy button on a client without `copy_text` support:** use Share.
 - **Old invite message after its code is used or has expired:** Copy and Share still
   work on a dead link, and the friend who opens it gets `invite_invalid`. The message is
   not edited.
@@ -155,8 +153,7 @@ needs the `plural()` helper from ADR 0005.
 - Link: `https://t.me/<bot_username>?start=<code>`, with the username from `getMe`
   (fetched once). A deep-link start parameter is at most 64 base64url characters
   (checked 2026-10-27, core.telegram.org/api/links). 8 base62 characters fit, and `_`
-  and `-` are never generated, so the code can't be misread. The message shows the link
-  without `https://`; Telegram still makes it a link.
+  and `-` are never generated, so the code can't be misread.
 - `/invite` reply: a new message with HTML parse mode and
   `link_preview_options.is_disabled = true`. It is never edited. One row of two buttons:
   - `copy_text: CopyTextButton(text=<https link>)`. The limit is 1-256 characters
@@ -182,12 +179,10 @@ needs the `plural()` helper from ADR 0005.
 - **Can members invite their own friends?** Left open by the owner. This design is
   admin-only (ADR 0003) but keeps the door open: `invited_by` is a `users` reference, and
   the notice goes to whoever created the code.
-- **`↗` may render as an emoji.** U+2197 has an emoji form, and some clients (Telegram
-  Desktop, some Android builds) may draw it as a colour emoji, which the UX guide
-  forbids. `⧉` is not an emoji. Check on the owner's devices. If `↗` renders as an emoji,
-  use plain `Share` or `button` slots `copy` and `share` (custom emoji icons).
-  The owner will check it on their devices later, and custom emoji icons are planned
-  anyway.
+- **Closed, 2026-10-28: the `↗` prefix.** It rendered as a colour emoji on Android, so
+  both prefixes are dropped and the labels are plain. The client draws its own corner icon
+  on each button. Custom emoji icons should not go on these buttons, because they would
+  double up with that icon.
 
 ## Out of scope
 

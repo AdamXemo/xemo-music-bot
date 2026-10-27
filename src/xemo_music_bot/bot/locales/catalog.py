@@ -2,8 +2,6 @@
 
 from dataclasses import dataclass
 
-from xemo_music_bot.bot.locales.plural import Plural
-
 
 @dataclass(slots=True, frozen=True)
 class Texts:
@@ -11,14 +9,11 @@ class Texts:
 
     Every field is required, so mypy rejects a catalog that misses a key. Message fields
     are HTML (escape ``&``, ``<`` and ``>``); button-label fields are plain text.
-    :class:`Plural` fields are read through ``plural()``.
 
     Attributes:
         private_bot: Reply to `/start` from a stranger or a blocked user.
         invite_invalid: Reply to a stranger's `/start` with a code that does not work.
-        invite_created: Reply to `/invite`; ``{link}`` is the link without ``https://``
-            and ``{days}`` is ``invite_days`` filled in.
-        invite_days: How long an invite works, in days.
+        invite_created: Reply to `/invite`: one bold line; the link is on its buttons.
         invite_copy: Label of the button that copies the invite link.
         invite_share: Label of the button that shares the invite link.
         invite_share_text: Line Telegram puts after the link when it is shared.
@@ -61,7 +56,6 @@ class Texts:
     private_bot: str
     invite_invalid: str
     invite_created: str
-    invite_days: Plural
     invite_copy: str
     invite_share: str
     invite_share_text: str

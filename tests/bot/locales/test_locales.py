@@ -6,12 +6,10 @@ import pytest
 
 from xemo_music_bot.bot.locales import (
     DEFAULT_LANGUAGE,
-    Language,
     Plural,
     Texts,
     detect_language,
     get_texts,
-    plural,
 )
 from xemo_music_bot.bot.locales.en import EN
 from xemo_music_bot.bot.locales.ru import RU
@@ -68,7 +66,7 @@ def test_copy_is_valid_html_text(texts: Texts) -> None:
     # Copy is sent in HTML parse mode; a literal & or < breaks the send. Allow tags
     # explicitly when the spec asks for bold.
     for name, value in copy_strings(texts):
-        if name == "results_header":
+        if name in {"results_header", "invite_created"}:
             value = value.replace("<b>", "").replace("</b>", "")
         assert html.escape(value, quote=False) == value, name
 
@@ -76,15 +74,11 @@ def test_copy_is_valid_html_text(texts: Texts) -> None:
 @pytest.mark.parametrize("texts", [EN, UK, RU])
 def test_copy_contains_no_unicode_emoji(texts: Texts) -> None:
     # Owner rule: only premium custom emoji (sent as entities) may appear in bot copy;
-    # the picker's language flags are the one exception. Share's arrow is approved copy
-    # until the owner checks how it renders (invite spec, open questions).
-    allowed = {"\N{NORTH EAST ARROW}"}
+    # the picker's language flags are the one exception.
     for name, value in copy_strings(texts):
         if name == "language_flag":
             continue
         symbols = [char for char in value if unicodedata.category(char) == "So"]
-        if name == "invite_share":
-            symbols = [char for char in symbols if char not in allowed]
         assert not symbols, name
 
 
@@ -92,13 +86,6 @@ def test_copy_contains_no_unicode_emoji(texts: Texts) -> None:
 def test_invite_buttons_fit_the_spec_budget(texts: Texts) -> None:
     assert len(texts.invite_copy) <= 12, texts.invite_copy
     assert len(texts.invite_share) <= 12, texts.invite_share
-
-
-@pytest.mark.parametrize(
-    ("language", "expected"), [("en", "7 days"), ("uk", "7 днів"), ("ru", "7 дней")]
-)
-def test_invite_days_reads_as_the_spec_says(language: Language, expected: str) -> None:
-    assert plural(language, 7, get_texts(language).invite_days) == expected
 
 
 @pytest.mark.parametrize("texts", [EN, UK, RU])

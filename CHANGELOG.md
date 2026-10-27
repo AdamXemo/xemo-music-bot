@@ -7,8 +7,8 @@ Versioning: [SemVer](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Invite codes: `/invite` (config admins, in their command menu) replies with a
-  single-use link that works for 7 days, with Copy and Share buttons. A friend who opens
+- Invite codes: `/invite` (config admins, in their command menu) replies with one
+  line and Copy and Share buttons for a single-use link (works 7 days). A friend who opens
   it joins (`invited_by` recorded, language from Telegram) and gets the language picker,
   and the inviting admin gets a one-line notice. Used, expired, unknown or malformed codes
   get `invite_invalid`. New `invites` table (migration 0006) and the ADR 0005 `plural()`

@@ -1,15 +1,13 @@
 """English copy, the canonical source for the other languages."""
 
 from xemo_music_bot.bot.locales.catalog import Texts
-from xemo_music_bot.bot.locales.plural import Plural
 
 EN = Texts(
     private_bot="This bot is private. To join, ask @Xemo999 for an invite",
     invite_invalid="This invite doesn't work anymore. Ask for a new one",
-    invite_created="Invite link:\n{link}\nFor one person, works for {days}",
-    invite_days=Plural(one="{count} day", few="{count} days", many="{count} days"),
-    invite_copy="⧉ Copy",
-    invite_share="↗ Share",
+    invite_created="<b>One-time invite ready</b>",
+    invite_copy="Copy",
+    invite_share="Share",
     invite_share_text="An invite to our music bot",
     invite_friend="{name} (@{username})",
     invite_joined="{friend} joined with your invite",

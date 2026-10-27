@@ -6,8 +6,8 @@ from aiogram.types import LinkPreviewOptions, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xemo_music_bot.bot.keyboards.invite import invite_keyboard
-from xemo_music_bot.bot.locales import Texts, plural
-from xemo_music_bot.core.services.invites import INVITE_TTL, InviteService
+from xemo_music_bot.bot.locales import Texts
+from xemo_music_bot.core.services.invites import InviteService
 from xemo_music_bot.db.models import User
 from xemo_music_bot.db.repositories.invites import InvitesRepository
 from xemo_music_bot.db.repositories.users import UsersRepository
@@ -16,7 +16,7 @@ from xemo_music_bot.db.repositories.users import UsersRepository
 async def handle_invite(
     message: Message, db_user: User, texts: Texts, session: AsyncSession, bot: Bot
 ) -> None:
-    """Create a code and reply with its link, how long it works, and Copy and Share.
+    """Create a code and reply with one line and the Copy and Share buttons.
 
     Args:
         message: The `/invite` message; any text after the command is ignored.
@@ -29,12 +29,10 @@ async def handle_invite(
     invite = await service.create(db_user.tg_id)
     # Bot.me() calls getMe once and caches the answer on the bot.
     me = await bot.me()
-    # Shown without the scheme; Telegram still makes it a link.
-    link = f"t.me/{me.username}?start={invite.code}"
-    days = plural(db_user.language, INVITE_TTL.days, texts.invite_days)
+    link = f"https://t.me/{me.username}?start={invite.code}"
     await message.answer(
-        texts.invite_created.format(link=link, days=days),
-        reply_markup=invite_keyboard(f"https://{link}", texts),
+        texts.invite_created,
+        reply_markup=invite_keyboard(link, texts),
         link_preview_options=LinkPreviewOptions(is_disabled=True),
     )
 

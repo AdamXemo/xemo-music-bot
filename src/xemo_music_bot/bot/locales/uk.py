@@ -1,16 +1,13 @@
 """Ukrainian copy."""
 
 from xemo_music_bot.bot.locales.catalog import Texts
-from xemo_music_bot.bot.locales.plural import Plural
 
 UK = Texts(
     private_bot="Це приватний бот. Щоб приєднатися, попросіть запрошення в @Xemo999",
     invite_invalid="Це запрошення вже не діє. Попросіть нове",
-    # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
-    invite_created="Посилання-запрошення:\n{link}\nДіє {days} для однієї людини",  # noqa: RUF001
-    invite_days=Plural(one="{count} день", few="{count} дні", many="{count} днів"),
-    invite_copy="⧉ Скопіювати",
-    invite_share="↗ Поділитися",
+    invite_created="<b>Одноразове запрошення готове</b>",
+    invite_copy="Скопіювати",
+    invite_share="Поділитися",
     invite_share_text="Запрошення до нашого бота",
     invite_friend="{name} (@{username})",
     invite_joined="Ваше запрошення прийнято: {friend}",
@@ -27,7 +24,6 @@ UK = Texts(
     pager_counter="{page} / {pages}",
     track_loading="Завантаження…",
     no_results=(
-        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
         "За запитом «{query}» нічого не знайдено. "  # noqa: RUF001
         "Спробуйте коротший запит або інше написання"  # noqa: RUF001
     ),
@@ -39,7 +35,6 @@ UK = Texts(
     too_long="Цей трек задовгий для Telegram ({duration}). Спробуйте коротшу версію",
     too_large="Трек «{track}» завеликий для Telegram. Спробуйте коротшу версію",
     download_failed=(
-        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
         "Не вдалося завантажити «{track}». "  # noqa: RUF001
         "Натисніть на нього ще раз або виберіть інший"  # noqa: RUF001
     ),

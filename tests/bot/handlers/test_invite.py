@@ -134,7 +134,7 @@ async def code_used_by(connection: AsyncConnection) -> int | None:
     return await connection.scalar(select(Invite.used_by).where(Invite.code == CODE))
 
 
-async def test_admin_invite_replies_with_the_link_its_validity_and_copy_and_share(
+async def test_admin_invite_replies_with_one_line_and_copy_and_share_buttons(
     bot: Bot,
     sent_requests: list[TelegramMethod[Any]],
     dispatcher: Dispatcher,
@@ -144,11 +144,11 @@ async def test_admin_invite_replies_with_the_link_its_validity_and_copy_and_shar
     await dispatcher.feed_update(bot, make_update("/invite for Anna", person(ADMIN_ID)))
 
     code = await connection.scalar(select(Invite.code).where(Invite.created_by == ADMIN_ID))
-    link = f"t.me/{BOT_USERNAME}?start={code}"
+    link = f"https://t.me/{BOT_USERNAME}?start={code}"
     [reply] = messages(sent_requests)
     assert reply.chat_id == ADMIN_ID
-    # The admin's stored language, with the plural form for 7.
-    assert reply.text == RU.invite_created.format(link=link, days="7 дней")
+    # The admin's stored language; the link is only on the buttons.
+    assert reply.text == RU.invite_created == "<b>Одноразовое приглашение готово</b>"
     assert reply.link_preview_options == LinkPreviewOptions(is_disabled=True)
     assert isinstance(reply.reply_markup, InlineKeyboardMarkup)
     [[copy, share]] = reply.reply_markup.inline_keyboard
@@ -159,12 +159,12 @@ async def test_admin_invite_replies_with_the_link_its_validity_and_copy_and_shar
         None,
     )
     assert copy.copy_text is not None
-    assert copy.copy_text.text == f"https://{link}"
+    assert copy.copy_text.text == link
     assert share.url is not None
     shared = urlsplit(share.url)
     assert f"{shared.scheme}://{shared.netloc}{shared.path}" == "https://t.me/share/url"
     assert "+" not in shared.query
-    assert parse_qs(shared.query) == {"url": [f"https://{link}"], "text": [RU.invite_share_text]}
+    assert parse_qs(shared.query) == {"url": [link], "text": [RU.invite_share_text]}
 
 
 async def test_each_invite_gets_a_new_code_and_get_me_runs_once(

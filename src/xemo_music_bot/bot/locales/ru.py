@@ -1,17 +1,14 @@
 """Russian copy."""
 
 from xemo_music_bot.bot.locales.catalog import Texts
-from xemo_music_bot.bot.locales.plural import Plural
 
 RU = Texts(
     # RUF001 mistakes the one-letter Russian preposition for a Latin "y"; it is real copy.
     private_bot="Это закрытый бот. Чтобы присоединиться, попросите приглашение у @Xemo999",  # noqa: RUF001
     invite_invalid="Это приглашение больше не действует. Попросите новое",
-    # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
-    invite_created="Ссылка-приглашение:\n{link}\nДействует {days} для одного человека",  # noqa: RUF001
-    invite_days=Plural(one="{count} день", few="{count} дня", many="{count} дней"),
-    invite_copy="⧉ Копировать",
-    invite_share="↗ Поделиться",
+    invite_created="<b>Одноразовое приглашение готово</b>",
+    invite_copy="Копировать",
+    invite_share="Поделиться",
     invite_share_text="Приглашение в наш бот",
     invite_friend="{name} (@{username})",
     invite_joined="Ваше приглашение принято: {friend}",
@@ -38,7 +35,6 @@ RU = Texts(
     too_long="Этот трек слишком длинный для Telegram ({duration}). Попробуйте версию покороче",
     too_large="Трек «{track}» слишком большой для Telegram. Попробуйте версию покороче",
     download_failed=(
-        # RUF001 reads Cyrillic look-alike letters as Latin; it is real copy.
         "Не получилось загрузить «{track}». "  # noqa: RUF001
         "Нажмите на него ещё раз или выберите другой"
     ),
