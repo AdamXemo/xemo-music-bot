@@ -2,7 +2,7 @@
 # Two stages: the build stage holds uv and the compilers' leftovers, the runtime stage
 # only the finished virtualenv, the source, ffmpeg and a non-root user.
 
-FROM python:3.13-slim AS build
+FROM python:3.15-slim AS build
 
 # Pinned to the uv_build range in pyproject.toml (>=0.13.0,<0.14.0).
 COPY --from=ghcr.io/astral-sh/uv:0.13.0 /uv /usr/local/bin/uv
@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
 
-FROM python:3.13-slim
+FROM python:3.15-slim
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes ffmpeg \
